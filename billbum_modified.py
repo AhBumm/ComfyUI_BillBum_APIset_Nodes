@@ -237,45 +237,6 @@ class BillBum_Modified_Structured_LLM_Node:
         data = response_dict.get("data", [])
         return (data,)
 
-class BillBum_Modified_LLM_API_sequentialNode:
-
-    def __init__(self):
-        pass
-    @classmethod
-    def INPUT_TYPES(s):
-        return {
-            "required": {
-                "prompt": ("STRING", {"forceInput": True},),
-                "model": ("STRING", {"forceInput": True},),
-                "api_url": ("STRING", {"forceInput": True},),
-                "api_key": ("STRING", {"forceInput": True},),
-                "system_prompt": ("STRING", {
-                    "multiline": True,
-                }),
-            },
-        }
-
-    RETURN_TYPES = ("STRING","STRING","STRING","STRING",)
-    RETURN_NAMES = ("LLM ANSWERS","model","api_url","api_key",)
-    FUNCTION = "get_llm_response_sequential"
-    CATEGORY = "BillBum_API"
-
-    @tenacity.retry(wait=tenacity.wait_exponential(multiplier=1, min=4, max=10))
-    def get_llm_response_sequential(self, prompt, model, api_url, api_key, system_prompt, seed):
-        
-        random.seed(seed)
-        client = OpenAI(
-            api_key=api_key,
-            base_url=api_url
-        )
-        completion = client.chat.completions.create(
-            model=model,
-            messages=[
-                {'role':'system', 'content': system_prompt},
-                {'role': 'user', 'content': prompt}]
-        )
-        return (completion.choices[0].message.content,seed,)
-
 class BillBum_Modified_VisionLM_API_Node:
 
     def __init__(self):
