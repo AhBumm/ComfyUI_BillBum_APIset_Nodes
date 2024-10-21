@@ -3,7 +3,6 @@ from .billbum_modified import *
 NODE_CLASS_MAPPINGS = {
     "BillBum_Modified_Dalle_API_Node": BillBum_Modified_Dalle_API_Node,
     "BillBum_Modified_LLM_API_Node": BillBum_Modified_LLM_API_Node,
-    "BillBum_Modified_LLM_API_sequentialNode": BillBum_Modified_LLM_API_sequentialNode,
     "BillBum_Modified_img2url_Node": BillBum_Modified_img2url_Node,
     "BillBum_Modified_VisionLM_API_Node": BillBum_Modified_VisionLM_API_Node,
     "BillBum_Modified_Ideogram_API_Node": BillBum_Modified_Ideogram_API_Node,
