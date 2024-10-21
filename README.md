@@ -7,7 +7,7 @@ including DALL-E, OpenAI's LLMs, other LLMs api platform, also other image gener
 
 - **Text Generation**: Use API to ask llm text generation, structured responses (not work yep).
 - **Image Generation**: Use API to Generate images, support dalle and flux1.1-pro etc.
-- **little tool**: base64 url to base64 data, base64 url to IMAGE, IMAGE to base64 url, regular llm text to word and "," only. etc.
+- **little tools**: base64 url to base64 data, base64 url to IMAGE, IMAGE to base64 url, regular llm text to word and "," only. etc.
 
 ## Installation
 In ComfyUI Manager Menu "Install via Git URL"
