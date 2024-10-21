@@ -1,6 +1,6 @@
-# BillBum Modified API Nodes
+## Introduction 
 
-BillBum Modified API Nodes is a set of comfyui nodes for myself to use api in comfyui.
+BillBum Modified Comfyui Nodes is a set of nodes for myself to use api in comfyui.
 including DALL-E, OpenAI's LLMs, other LLMs api platform, also other image generation api.
 
 ## Features
