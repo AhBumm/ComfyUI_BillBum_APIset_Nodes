@@ -2,6 +2,7 @@
 
 BillBum Modified Comfyui Nodes is a set of nodes for myself to use api in comfyui.
 including DALL-E, OpenAI's LLMs, other LLMs api platform, also other image generation api.
+![screenshot](https://github.com/user-attachments/assets/3dd235f3-cfd1-45dd-8914-c2b0fd68e5f1)
 
 ## Features
 
