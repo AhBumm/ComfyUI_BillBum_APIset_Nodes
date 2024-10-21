@@ -14,7 +14,7 @@ including DALL-E, OpenAI's LLMs, other LLMs api platform, also other image gener
 ## Installation
 In ComfyUI Manager Menu "Install via Git URL"
 ```
-https://github.com/your-username/billbum-modified-api-nodes.git
+https://github.com/AhBumm/ComfyUI_BillBum_Nodes.git
 ```
 install requirements with comfyui embeded python
 ```
