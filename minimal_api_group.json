@@ -1,18 +1,18 @@
 {
-  "last_node_id": 16,
-  "last_link_id": 18,
+  "last_node_id": 22,
+  "last_link_id": 29,
   "nodes": [
     {
       "id": 6,
       "type": "LoadImage",
       "pos": {
-        "0": 200.6278839111328,
-        "1": 682.939453125
+        "0": 38.78793716430664,
+        "1": 516.299560546875
       },
-      "size": [
-        210,
-        314
-      ],
+      "size": {
+        "0": 210,
+        "1": 314
+      },
       "flags": {},
       "order": 0,
       "mode": 0,
@@ -24,8 +24,8 @@
           "links": [
             3
           ],
-          "label": "IMAGE",
-          "slot_index": 0
+          "slot_index": 0,
+          "label": "IMAGE"
         },
         {
           "name": "MASK",
@@ -46,15 +46,15 @@
       "id": 3,
       "type": "ShowText|pysssss",
       "pos": {
-        "0": 688,
-        "1": 230
+        "0": 522.1200561523438,
+        "1": 94.96003723144531
       },
-      "size": [
-        210,
-        34
-      ],
+      "size": {
+        "0": 210,
+        "1": 34
+      },
       "flags": {},
-      "order": 6,
+      "order": 8,
       "mode": 0,
       "inputs": [
         {
@@ -63,7 +63,8 @@
           "link": 2,
           "widget": {
             "name": "text"
-          }
+          },
+          "label": "text"
         }
       ],
       "outputs": [
@@ -86,15 +87,15 @@
       "id": 8,
       "type": "ShowText|pysssss",
       "pos": {
-        "0": 421.6278076171875,
-        "1": 981.939453125
+        "0": 259.7879333496094,
+        "1": 815.2994384765625
       },
-      "size": [
-        286.0000457763672,
-        34
-      ],
+      "size": {
+        "0": 286.00006103515625,
+        "1": 34
+      },
       "flags": {},
-      "order": 9,
+      "order": 12,
       "mode": 0,
       "inputs": [
         {
@@ -103,7 +104,8 @@
           "link": 5,
           "widget": {
             "name": "text"
-          }
+          },
+          "label": "text"
         }
       ],
       "outputs": [
@@ -126,13 +128,13 @@
       "id": 7,
       "type": "DF_Text_Box",
       "pos": {
-        "0": 199.6278839111328,
-        "1": 1030.939453125
+        "0": 37.78793716430664,
+        "1": 864.2994384765625
       },
-      "size": [
-        210,
-        76
-      ],
+      "size": {
+        "0": 210,
+        "1": 76
+      },
       "flags": {},
       "order": 1,
       "mode": 0,
@@ -144,8 +146,8 @@
           "links": [
             4
           ],
-          "label": "STRING",
-          "slot_index": 0
+          "slot_index": 0,
+          "label": "STRING"
         }
       ],
       "properties": {
@@ -159,13 +161,13 @@
       "id": 2,
       "type": "DF_Text_Box",
       "pos": {
-        "0": 203,
-        "1": 231
+        "0": 37.12005615234375,
+        "1": 95.96003723144531
       },
-      "size": [
-        210,
-        76
-      ],
+      "size": {
+        "0": 210,
+        "1": 76
+      },
       "flags": {},
       "order": 2,
       "mode": 0,
@@ -177,8 +179,8 @@
           "links": [
             1
           ],
-          "label": "STRING",
-          "slot_index": 0
+          "slot_index": 0,
+          "label": "STRING"
         }
       ],
       "properties": {
@@ -189,18 +191,198 @@
       ]
     },
     {
+      "id": 11,
+      "type": "Load Image From Url (mtb)",
+      "pos": {
+        "0": 862.359375,
+        "1": 518.8801879882812
+      },
+      "size": {
+        "0": 244.65513610839844,
+        "1": 34
+      },
+      "flags": {},
+      "order": 16,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "url",
+          "type": "STRING",
+          "link": 22,
+          "widget": {
+            "name": "url"
+          },
+          "label": "url"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            13
+          ],
+          "slot_index": 0,
+          "label": "IMAGE"
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "Load Image From Url (mtb)"
+      },
+      "widgets_values": [
+        "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a7/Example.jpg/800px-Example.jpg"
+      ]
+    },
+    {
+      "id": 13,
+      "type": "BillBum_Modified_Dalle_API_Node",
+      "pos": {
+        "0": 1009.8713989257812,
+        "1": 96.71195983886719
+      },
+      "size": {
+        "0": 260.3999938964844,
+        "1": 146
+      },
+      "flags": {},
+      "order": 10,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "prompt",
+          "type": "STRING",
+          "link": 16,
+          "widget": {
+            "name": "prompt"
+          },
+          "label": "prompt"
+        },
+        {
+          "name": "api_url",
+          "type": "STRING",
+          "link": 14,
+          "widget": {
+            "name": "api_url"
+          },
+          "label": "api_url"
+        },
+        {
+          "name": "api_key",
+          "type": "STRING",
+          "link": 15,
+          "widget": {
+            "name": "api_key"
+          },
+          "label": "api_key"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "image_url",
+          "type": "STRING",
+          "links": [
+            17
+          ],
+          "slot_index": 0,
+          "label": "image_url"
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "BillBum_Modified_Dalle_API_Node"
+      },
+      "widgets_values": [
+        "",
+        "1024x1024",
+        "hd",
+        1,
+        "https://api.hyprlab.io/v1",
+        "YOUR_API_KEY_HERE"
+      ]
+    },
+    {
+      "id": 15,
+      "type": "Load Image From Url (mtb)",
+      "pos": {
+        "0": 789.8719482421875,
+        "1": 207.71202087402344
+      },
+      "size": {
+        "0": 210,
+        "1": 34
+      },
+      "flags": {},
+      "order": 14,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "url",
+          "type": "STRING",
+          "link": 17,
+          "widget": {
+            "name": "url"
+          },
+          "label": "url"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            18
+          ],
+          "slot_index": 0,
+          "label": "IMAGE"
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "Load Image From Url (mtb)"
+      },
+      "widgets_values": [
+        "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a7/Example.jpg/800px-Example.jpg"
+      ]
+    },
+    {
+      "id": 16,
+      "type": "PreviewImage",
+      "pos": {
+        "0": 789.8719482421875,
+        "1": 277.7119445800781
+      },
+      "size": {
+        "0": 480.7830505371094,
+        "1": 26
+      },
+      "flags": {},
+      "order": 17,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 18,
+          "label": "images"
+        }
+      ],
+      "outputs": [],
+      "properties": {
+        "Node name for S&R": "PreviewImage"
+      },
+      "widgets_values": []
+    },
+    {
       "id": 4,
       "type": "BillBum_Modified_VisionLM_API_Node",
       "pos": {
-        "0": 421.6278076171875,
-        "1": 683.939453125
+        "0": 259.7879333496094,
+        "1": 517.2994384765625
       },
-      "size": [
-        285.6000061035156,
-        264
-      ],
+      "size": {
+        "0": 285.6000061035156,
+        "1": 264
+      },
       "flags": {},
-      "order": 7,
+      "order": 9,
       "mode": 0,
       "inputs": [
         {
@@ -215,7 +397,8 @@
           "link": 4,
           "widget": {
             "name": "prompt"
-          }
+          },
+          "label": "prompt"
         },
         {
           "name": "api_url",
@@ -223,7 +406,8 @@
           "link": 6,
           "widget": {
             "name": "api_url"
-          }
+          },
+          "label": "api_url"
         },
         {
           "name": "api_key",
@@ -231,7 +415,8 @@
           "link": 7,
           "widget": {
             "name": "api_key"
-          }
+          },
+          "label": "api_key"
         },
         {
           "name": "model",
@@ -239,7 +424,8 @@
           "link": 8,
           "widget": {
             "name": "model"
-          }
+          },
+          "label": "model"
         }
       ],
       "outputs": [
@@ -249,8 +435,8 @@
           "links": [
             5
           ],
-          "label": "LLM ANSWERS",
-          "slot_index": 0
+          "slot_index": 0,
+          "label": "LLM ANSWERS"
         },
         {
           "name": "seed",
@@ -268,19 +454,19 @@
           "name": "api_url",
           "type": "STRING",
           "links": [
-            10
+            20
           ],
-          "label": "api_url",
-          "slot_index": 3
+          "slot_index": 3,
+          "label": "api_url"
         },
         {
           "name": "api_key",
           "type": "STRING",
           "links": [
-            11
+            21
           ],
-          "label": "api_key",
-          "slot_index": 4
+          "slot_index": 4,
+          "label": "api_key"
         }
       ],
       "properties": {
@@ -297,24 +483,24 @@
       ]
     },
     {
-      "id": 9,
-      "type": "BillBum_Modified_T2I_API_Node",
+      "id": 17,
+      "type": "BillBum_Modified_Flux_API_Node",
       "pos": {
-        "0": 796.456298828125,
-        "1": 799.2877197265625
+        "0": 601.3592529296875,
+        "1": 628.8801879882812
       },
       "size": [
-        243.60000610351562,
+        252,
         218
       ],
       "flags": {},
-      "order": 10,
+      "order": 13,
       "mode": 0,
       "inputs": [
         {
           "name": "prompt",
           "type": "STRING",
-          "link": 9,
+          "link": 23,
           "widget": {
             "name": "prompt"
           }
@@ -322,7 +508,7 @@
         {
           "name": "api_url",
           "type": "STRING",
-          "link": 10,
+          "link": 20,
           "widget": {
             "name": "api_url"
           }
@@ -330,7 +516,7 @@
         {
           "name": "api_key",
           "type": "STRING",
-          "link": 11,
+          "link": 21,
           "widget": {
             "name": "api_key"
           }
@@ -341,7 +527,7 @@
           "name": "image_url",
           "type": "STRING",
           "links": [
-            12
+            22
           ],
           "label": "image_url",
           "slot_index": 0
@@ -354,7 +540,7 @@
         }
       ],
       "properties": {
-        "Node name for S&R": "BillBum_Modified_T2I_API_Node"
+        "Node name for S&R": "BillBum_Modified_Flux_API_Node"
       },
       "widgets_values": [
         "flux-1.1-pro",
@@ -369,18 +555,51 @@
       ]
     },
     {
+      "id": 10,
+      "type": "DF_Text_Box",
+      "pos": {
+        "0": 607.3592529296875,
+        "1": 518.8801879882812
+      },
+      "size": {
+        "0": 246.03909301757812,
+        "1": 76
+      },
+      "flags": {},
+      "order": 3,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "STRING",
+          "type": "STRING",
+          "links": [
+            23
+          ],
+          "slot_index": 0,
+          "label": "STRING"
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "DF_Text_Box"
+      },
+      "widgets_values": [
+        ""
+      ]
+    },
+    {
       "id": 1,
       "type": "BillBum_Modified_LLM_API_Node",
       "pos": {
-        "0": 429,
-        "1": 230
+        "0": 263.1201171875,
+        "1": 94.96003723144531
       },
-      "size": [
-        243.60000610351562,
-        300
-      ],
+      "size": {
+        "0": 243.60000610351562,
+        "1": 300
+      },
       "flags": {},
-      "order": 5,
+      "order": 7,
       "mode": 0,
       "inputs": [
         {
@@ -389,7 +608,8 @@
           "link": 1,
           "widget": {
             "name": "prompt"
-          }
+          },
+          "label": "prompt"
         }
       ],
       "outputs": [
@@ -399,8 +619,8 @@
           "links": [
             2
           ],
-          "label": "LLM ANSWERS",
-          "slot_index": 0
+          "slot_index": 0,
+          "label": "LLM ANSWERS"
         },
         {
           "name": "seed",
@@ -414,28 +634,30 @@
           "links": [
             8
           ],
-          "label": "model",
-          "slot_index": 2
+          "slot_index": 2,
+          "label": "model"
         },
         {
           "name": "api_url",
           "type": "STRING",
           "links": [
             6,
-            14
+            14,
+            24
           ],
-          "label": "api_url",
-          "slot_index": 3
+          "slot_index": 3,
+          "label": "api_url"
         },
         {
           "name": "api_key",
           "type": "STRING",
           "links": [
             7,
-            15
+            15,
+            25
           ],
-          "label": "api_key",
-          "slot_index": 4
+          "slot_index": 4,
+          "label": "api_key"
         }
       ],
       "properties": {
@@ -453,49 +675,16 @@
       ]
     },
     {
-      "id": 10,
-      "type": "DF_Text_Box",
-      "pos": {
-        "0": 796,
-        "1": 684
-      },
-      "size": [
-        246.03909179702782,
-        76
-      ],
-      "flags": {},
-      "order": 3,
-      "mode": 0,
-      "inputs": [],
-      "outputs": [
-        {
-          "name": "STRING",
-          "type": "STRING",
-          "links": [
-            9
-          ],
-          "label": "STRING",
-          "slot_index": 0
-        }
-      ],
-      "properties": {
-        "Node name for S&R": "DF_Text_Box"
-      },
-      "widgets_values": [
-        ""
-      ]
-    },
-    {
       "id": 14,
       "type": "DF_Text_Box",
       "pos": {
-        "0": 987.873291015625,
-        "1": 230.99197387695312
+        "0": 791,
+        "1": 97
       },
-      "size": [
-        210,
-        76
-      ],
+      "size": {
+        "0": 210,
+        "1": 76
+      },
       "flags": {},
       "order": 4,
       "mode": 0,
@@ -507,8 +696,8 @@
           "links": [
             16
           ],
-          "label": "STRING",
-          "slot_index": 0
+          "slot_index": 0,
+          "label": "STRING"
         }
       ],
       "properties": {
@@ -519,74 +708,110 @@
       ]
     },
     {
-      "id": 11,
-      "type": "Load Image From Url (mtb)",
+      "id": 20,
+      "type": "DF_Text_Box",
       "pos": {
-        "0": 1051,
-        "1": 684
+        "0": 1327.359130859375,
+        "1": 243.27996826171875
       },
-      "size": [
-        244.65513610855123,
-        34
-      ],
+      "size": {
+        "0": 210,
+        "1": 76
+      },
       "flags": {},
-      "order": 12,
+      "order": 5,
       "mode": 0,
-      "inputs": [
-        {
-          "name": "url",
-          "type": "STRING",
-          "link": 12,
-          "widget": {
-            "name": "url"
-          }
-        }
-      ],
+      "inputs": [],
       "outputs": [
         {
-          "name": "IMAGE",
-          "type": "IMAGE",
+          "name": "STRING",
+          "type": "STRING",
           "links": [
-            13
+            27
           ],
-          "label": "IMAGE",
-          "slot_index": 0
+          "slot_index": 0,
+          "label": "STRING"
         }
       ],
       "properties": {
-        "Node name for S&R": "Load Image From Url (mtb)"
+        "Node name for S&R": "DF_Text_Box"
       },
       "widgets_values": [
-        "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a7/Example.jpg/800px-Example.jpg"
-      ]
+        ""
+      ],
+      "color": "#332922",
+      "bgcolor": "#593930"
     },
     {
-      "id": 13,
-      "type": "BillBum_Modified_Dalle_API_Node",
+      "id": 19,
+      "type": "DF_Text_Box",
       "pos": {
-        "0": 1206.872802734375,
-        "1": 230.99197387695312
+        "0": 1328.359130859375,
+        "1": 97.27996826171875
       },
       "size": [
-        260.3999938964844,
-        146
+        210,
+        110.76481791299423
       ],
       "flags": {},
-      "order": 8,
+      "order": 6,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "STRING",
+          "type": "STRING",
+          "links": [
+            26
+          ],
+          "slot_index": 0,
+          "label": "STRING"
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "DF_Text_Box"
+      },
+      "widgets_values": [
+        ""
+      ],
+      "color": "#232",
+      "bgcolor": "#353"
+    },
+    {
+      "id": 18,
+      "type": "BillBum_Modified_SD3_API_Node",
+      "pos": {
+        "0": 1542.359130859375,
+        "1": 97.27996826171875
+      },
+      "size": [
+        243.60000610351562,
+        222
+      ],
+      "flags": {},
+      "order": 11,
       "mode": 0,
       "inputs": [
         {
           "name": "prompt",
           "type": "STRING",
-          "link": 16,
+          "link": 26,
           "widget": {
             "name": "prompt"
           }
         },
         {
+          "name": "negative_prompt",
+          "type": "STRING",
+          "link": 27,
+          "widget": {
+            "name": "negative_prompt"
+          }
+        },
+        {
           "name": "api_url",
           "type": "STRING",
-          "link": 14,
+          "link": 24,
           "widget": {
             "name": "api_url"
           }
@@ -594,7 +819,7 @@
         {
           "name": "api_key",
           "type": "STRING",
-          "link": 15,
+          "link": 25,
           "widget": {
             "name": "api_key"
           }
@@ -605,37 +830,40 @@
           "name": "image_url",
           "type": "STRING",
           "links": [
-            17
+            28
           ],
           "label": "image_url",
           "slot_index": 0
         }
       ],
       "properties": {
-        "Node name for S&R": "BillBum_Modified_Dalle_API_Node"
+        "Node name for S&R": "BillBum_Modified_SD3_API_Node"
       },
       "widgets_values": [
         "",
-        "1024x1024",
-        "hd",
-        1,
-        "https://api.hyprlab.io/v1",
-        "YOUR_API_KEY_HERE"
+        "",
+        "sd3-ultra",
+        "1:1",
+        0,
+        "randomize",
+        "https://api.hyprlab.io/v1/images/generations",
+        "YOUR_API_KEY_HERE",
+        "Only sd3-core support"
       ]
     },
     {
       "id": 12,
       "type": "PreviewImage",
       "pos": {
-        "0": 1050,
-        "1": 755
+        "0": 861,
+        "1": 590
       },
-      "size": [
-        243.7190917970279,
-        261.94303248779306
-      ],
+      "size": {
+        "0": 243.71908569335938,
+        "1": 261.9430236816406
+      },
       "flags": {},
-      "order": 14,
+      "order": 19,
       "mode": 0,
       "inputs": [
         {
@@ -648,27 +876,28 @@
       "outputs": [],
       "properties": {
         "Node name for S&R": "PreviewImage"
-      }
+      },
+      "widgets_values": []
     },
     {
-      "id": 15,
+      "id": 21,
       "type": "Load Image From Url (mtb)",
       "pos": {
-        "0": 986.873291015625,
-        "1": 341.9919738769531
+        "0": 1329.359130859375,
+        "1": 357.2799072265625
       },
       "size": [
-        210,
+        455.85978875367914,
         34
       ],
       "flags": {},
-      "order": 11,
+      "order": 15,
       "mode": 0,
       "inputs": [
         {
           "name": "url",
           "type": "STRING",
-          "link": 17,
+          "link": 28,
           "widget": {
             "name": "url"
           }
@@ -679,7 +908,7 @@
           "name": "IMAGE",
           "type": "IMAGE",
           "links": [
-            18
+            29
           ],
           "label": "IMAGE",
           "slot_index": 0
@@ -693,24 +922,24 @@
       ]
     },
     {
-      "id": 16,
+      "id": 22,
       "type": "PreviewImage",
       "pos": {
-        "0": 986.873291015625,
-        "1": 411.9919738769531
+        "0": 1331.359130859375,
+        "1": 426.2799072265625
       },
       "size": [
-        480.7830474855043,
+        452.9797350427416,
         26
       ],
       "flags": {},
-      "order": 13,
+      "order": 18,
       "mode": 0,
       "inputs": [
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 18,
+          "link": 29,
           "label": "images"
         }
       ],
@@ -786,38 +1015,6 @@
       "STRING"
     ],
     [
-      9,
-      10,
-      0,
-      9,
-      0,
-      "STRING"
-    ],
-    [
-      10,
-      4,
-      3,
-      9,
-      1,
-      "STRING"
-    ],
-    [
-      11,
-      4,
-      4,
-      9,
-      2,
-      "STRING"
-    ],
-    [
-      12,
-      9,
-      0,
-      11,
-      0,
-      "STRING"
-    ],
-    [
       13,
       11,
       0,
@@ -864,28 +1061,96 @@
       16,
       0,
       "IMAGE"
+    ],
+    [
+      20,
+      4,
+      3,
+      17,
+      1,
+      "STRING"
+    ],
+    [
+      21,
+      4,
+      4,
+      17,
+      2,
+      "STRING"
+    ],
+    [
+      22,
+      17,
+      0,
+      11,
+      0,
+      "STRING"
+    ],
+    [
+      23,
+      10,
+      0,
+      17,
+      0,
+      "STRING"
+    ],
+    [
+      24,
+      1,
+      3,
+      18,
+      2,
+      "STRING"
+    ],
+    [
+      25,
+      1,
+      4,
+      18,
+      3,
+      "STRING"
+    ],
+    [
+      26,
+      19,
+      0,
+      18,
+      0,
+      "STRING"
+    ],
+    [
+      27,
+      20,
+      0,
+      18,
+      1,
+      "STRING"
+    ],
+    [
+      28,
+      18,
+      0,
+      21,
+      0,
+      "STRING"
+    ],
+    [
+      29,
+      21,
+      0,
+      22,
+      0,
+      "IMAGE"
     ]
   ],
   "groups": [
     {
-      "title": "Minimal Text To Image Group",
+      "title": "Minimal Dalle Image Gen Group ",
       "bounding": [
-        787,
-        610,
-        520,
-        417
-      ],
-      "color": "#3f789e",
-      "font_size": 24,
-      "flags": {}
-    },
-    {
-      "title": "Minimal VisionLM Group",
-      "bounding": [
-        189,
-        609,
-        528,
-        508
+        780,
+        23,
+        501,
+        291
       ],
       "color": "#3f789e",
       "font_size": 24,
@@ -894,8 +1159,8 @@
     {
       "title": "Minimal LLM Group",
       "bounding": [
-        193,
-        156,
+        27,
+        21,
         715,
         384
       ],
@@ -904,12 +1169,36 @@
       "flags": {}
     },
     {
-      "title": "Minimal Dalle Image Gen Group ",
+      "title": "Minimal VisionLM Group",
       "bounding": [
-        977,
-        157,
-        501,
-        291
+        27,
+        442,
+        528,
+        508
+      ],
+      "color": "#3f789e",
+      "font_size": 24,
+      "flags": {}
+    },
+    {
+      "title": "Minimal Flux Image Gen Group",
+      "bounding": [
+        598,
+        445,
+        520,
+        417
+      ],
+      "color": "#3f789e",
+      "font_size": 24,
+      "flags": {}
+    },
+    {
+      "title": "Minimal SD3 Image Gen Group",
+      "bounding": [
+        1317,
+        23,
+        479,
+        439
       ],
       "color": "#3f789e",
       "font_size": 24,
@@ -919,10 +1208,10 @@
   "config": {},
   "extra": {
     "ds": {
-      "scale": 0.7513148009015778,
+      "scale": 0.9090909090909094,
       "offset": [
-        -62.32828588882485,
-        -1.1953225878906841
+        -423.2996813318047,
+        4.115395252288866
       ]
     }
   },
