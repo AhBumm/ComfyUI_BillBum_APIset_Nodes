@@ -83,7 +83,7 @@ class BillBum_Modified_Dalle_API_Node:
     def INPUT_TYPES(s):
         return {
             "required": {
-                "prompt": ("STRING", {"forceInput": True},),
+                "prompt": ("STRING", {"defaultInput": True},),
                 "size": (["1024x1024", "512x512", "256x256"],),
                 "quality": (["hd", "standard"],),
                 "n": ("INT", {
@@ -137,7 +137,7 @@ class BillBum_Modified_LLM_API_Node:
                 "seed": ("INT", {
                      "default": 0, "min": 0, "max": 0xffffffffffffffff
                 }),
-                "prompt": ("STRING", {"forceInput": True},),
+                "prompt": ("STRING", {"defaultInput": True},),
                 "model": ("STRING", {
                     "default": "gpt-4o",
                 }),
@@ -190,7 +190,7 @@ class BillBum_Modified_Structured_LLM_Node:
     def INPUT_TYPES(cls):
         return {
             "required": {
-                "prompt": ("STRING", {"forceInput": True},),
+                "prompt": ("STRING", {"defaultInput": True},),
                 "model": ("STRING", {
                     "default": "gpt-4o-mini",
                 }),
@@ -202,8 +202,8 @@ class BillBum_Modified_Structured_LLM_Node:
                     "multiline": False,
                     "default": "YOUR_API_KEY_HERE",
                 }),
-                "system_prompt": ("STRING", {"forceInput": True},),
-                "output_format": ("STRING", {"forceInput": True},),
+                "system_prompt": ("STRING", {"defaultInput": True},),
+                "output_format": ("STRING", {"defaultInput": True},),
             },
         }
 
@@ -249,7 +249,7 @@ class BillBum_Modified_VisionLM_API_Node:
                 "seed": ("INT", {
                     "default": 0, "min": 0, "max": 0xffffffffffffffff
                 }),
-                "prompt": ("STRING", {"forceInput": True},),
+                "prompt": ("STRING", {"defaultInput": True},),
                 "model": ("STRING", {
                     "default": "qwen-vl-max-0201",
                 }),
@@ -338,7 +338,7 @@ class BillBum_Modified_img2url_Node:
         finally:
             os.remove(image_path)
 
-class BillBum_Modified_Ideogram_API_Node:
+class BillBum_Modified_SD3_API_Node:
 
     def __init__(self):
         pass
@@ -347,61 +347,90 @@ class BillBum_Modified_Ideogram_API_Node:
     def INPUT_TYPES(s):
         return {
             "required": {
-                "prompt": ("STRING", {"forceInput": True},),
-                "negative_prompt": ("STRING", {"forceInput": True},),
-                "model": (["V_2", "V_2_TURBO", "V_1", "V_1_TURBO"],),
-                "magic_prompt_option": (["AUTO", "ON", "OFF"],),
-                "aspect_ratio": (["ASPECT_1_1", "ASPECT_1_3", "ASPECT_3_1", "ASPECT_16_10", "ASPECT_10_16", "ASPECT_4_3", "ASPECT_3_4", "ASPECT_9_16", "ASPECT_16_9", "ASPECT_2_3", "ASPECT_3_2"],),
+                "prompt": ("STRING", {"defaultInput": True},),
+                "negative_prompt": ("STRING", {"defaultInput": True},),
+                "model": ("STRING", {"default": "sd3-ultra"}),
+                "aspect_ratio": ([
+                    "1:1", "16:9", "21:9", "2:3", "3:2", "4:5", "5:4", "9:16", "9:21"
+                ],),
                 "seed": ("INT", {
-                     "default": 0, "min": 0, "max": 0xffffffffffffffff
+                     "default": 0, "min": 0, "max": 4294967294
                 }),
                 "api_url": ("STRING", {
                     "multiline": False,
-                    "default": "https://api.ideogram.ai/generate",
+                    "default": "https://api.hyprlab.io/v1/images/generations",
                 }),
                 "api_key": ("STRING", {
                     "multiline": False,
                     "default": "YOUR_API_KEY_HERE",
                 }),
-                "style_type": (
-                    ["None", "GENERAL", "REALISTIC", "DESIGN", "RENDER_3D", "ANIME"],
-                ),
+                "style_preset": ([
+                    "Only sd3-core support",
+                    "None",
+                    "3d-model",
+                    "analog-film",
+                    "anime",
+                    "cinematic",
+                    "comic-book",
+                    "digital-art",
+                    "enhance",
+                    "fantasy-art",
+                    "isometric",
+                    "line-art",
+                    "low-poly",
+                    "modeling-compound",
+                    "neon-punk",
+                    "origami",
+                    "photographic",
+                    "pixel-art",
+                    "tile-texture"
+                ],),
             },
         }
 
     RETURN_TYPES = ("STRING",)
     RETURN_NAMES = ("image_url",)
-    FUNCTION = "get_ideogram_image"
+    FUNCTION = "get_sd3_image"
     CATEGORY = "BillBum_API"
 
     @tenacity.retry(wait=tenacity.wait_exponential(multiplier=1, min=4, max=10))
-    def get_ideogram_image(self, prompt, negative_prompt, aspect_ratio, model, magic_prompt_option, seed, api_url, api_key, style_type,):
+    def get_sd3_image(self, prompt, negative_prompt, model, aspect_ratio, seed, api_url, api_key, style_preset):
 
         random.seed(seed)
         url = api_url
-        
-        payload = { "image_request": {
-                "prompt": prompt,
-                "negative_prompt": negative_prompt,
-                "aspect_ratio": aspect_ratio,
-                "model": model,
-                "magic_prompt_option": magic_prompt_option,
-                "seed": seed
-            } }
-        
-        if model in ["V_2", "V_2_TURBO"] and style_type != "None":
-            payload["image_request"]["style_type"] = style_type
+
+        payload = {
+            "model": model,
+            "prompt": prompt,
+            "negative_prompt": negative_prompt,
+            "aspect_ratio": aspect_ratio,
+            "seed": seed,
+            "response_format": "url",
+            "output_format": "webp",
+        }
+
+        if model == "sd3-core" and style_preset not in ["None", "Only sd3-core support"]:
+            payload["style_preset"] = style_preset
 
         headers = {
-            "Api-Key": api_key,
-            "Content-Type": "application/json"
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {api_key}"
         }
 
         response = requests.post(url, json=payload, headers=headers)
-        image_url = response.json()["data"][0]["url"]
+
+        print(f"HTTP 状态码: {response.status_code}")
+        print(f"响应内容: {response.text}")
+
+        response.raise_for_status()
+        response_json = response.json()
+
+        image_url = response_json["data"][0]["url"]
+        if not image_url:
+            raise Exception(f"Image URL not found in response: {response_json}")
         return (image_url,)
 
-class BillBum_Modified_Text2Image_API_Node:
+class BillBum_Modified_Flux_API_Node:
 
     def __init__(self):
         pass
@@ -411,7 +440,7 @@ class BillBum_Modified_Text2Image_API_Node:
         return {
             "required": {
                 "model": ("STRING", {"default": "flux-1.1-pro"}),
-                "prompt": ("STRING", {"forceInput": True}),
+                "prompt": ("STRING", {"defaultInput": True}),
                 "width": ("INT", {"default": 1024, "min": 256, "max": 1440, "step": 32, "display": "number"}),
                 "height": ("INT", {"default": 1024, "min": 256, "max": 1440, "step": 32, "display": "number"}),
                 "steps": ("INT", {"default": 20, "min": 1, "max": 50, "step": 1, "display": "number"}),
@@ -446,11 +475,16 @@ class BillBum_Modified_Text2Image_API_Node:
         }
 
         response = requests.post(api_url, headers=headers, json=data)
-        response_data = response.json()
-        
-        image_url = response_data.get("data", [{}])[0].get("url")
+
+        print(f"HTTP 状态码: {response.status_code}")
+        print(f"响应内容: {response.text}")
+
+        response.raise_for_status()
+        response_json = response.json()
+
+        image_url = response_json["data"][0]["url"]
         if not image_url:
-            image_url = "https://external-preview.redd.it/1RUrKk4LhgVbp_Z4JwbAPE4C0ZMxQNw0ueHlTFoykcc.jpg?auto=webp&s=ef14b6dc9fed780158b0842145f5fd017ffac98f"
+            raise Exception(f"Image URL not found in response: {response_json}")
         return (image_url, seed)
 
 class BillBum_Modified_Together_API_Node:
@@ -466,7 +500,7 @@ class BillBum_Modified_Together_API_Node:
                     "default": "black-forest-labs/FLUX.1.1-pro",
                 }),
                 "prompt": ("STRING", {
-                    "forceInput": True,
+                    "defaultInput": True,
                 }),
                 "width": ("INT", {
                     "default": 1024,
@@ -544,7 +578,7 @@ class BillBum_Modified_Base64_Url2Img_Node:
         return {
             "required": {
                 "base64_url": ("STRING", {
-                    "forceInput": True,
+                    "defaultInput": True,
                 }),
             },
         }
@@ -619,7 +653,7 @@ class BillBum_Modified_Base64_Url2Data_Node:
     def INPUT_TYPES(s):
         return {
             "required": {
-                "base64_url": ("STRING", {"forceInput": True},),
+                "base64_url": ("STRING", {"defaultInput": True},),
             },
         }
 
@@ -644,7 +678,7 @@ class BillBum_Modified_RegText_Node:
     def INPUT_TYPES(s):
         return {
             "required": {
-                "input_text": ("STRING", {"forceInput": True},),
+                "input_text": ("STRING", {"defaultInput": True},),
             },
         }
 
