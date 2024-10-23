@@ -11,6 +11,16 @@ including DALL-E, OpenAI's LLMs, other LLMs api platform, also other image gener
 - **Vision LM**: Use API to caption or describe image, need models vision supported.
 - **little tools**: base64 url to base64 data, base64 url to IMAGE, IMAGE to base64 url, regular llm text to word and "," only. etc.
 
+## Update
+- **Add use_jailbreak option for VisionLM api node**
+  If your caption task rejected due to nsfw content, you can try to take on use_jailbreak.
+  tested models:
+  - llama-3.2-11b
+  - llama-3.2-90b
+  - gemini-1.5-flash
+  - gemini-1.5-pro
+  - pixtral-12b-latest
+
 ## Installation
 In ComfyUI Manager Menu "Install via Git URL"
 ```
@@ -23,13 +33,3 @@ install requirements with comfyui embeded python
 ```
 pip install -r requirements.txt
 ```
-
-## Update
-- **Add use_jailbreak option for VisionLM api node**
-  If your caption task rejected due to nsfw content, you can try to take on use_jailbreak.
-  tested models:
-  - llama-3.2-11b
-  - llama-3.2-90b
-  - gemini-1.5-flash
-  - gemini-1.5-pro
-  - pixtral-12b-latest
