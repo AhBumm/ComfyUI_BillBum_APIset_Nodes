@@ -20,3 +20,13 @@ install requirements with comfyui embeded python
 ```
 pip install -r requirements.txt
 ```
+
+## Update
+- **Add use_jailbreak option for VisionLM api node**
+  If your caption task rejected due to nsfw content, you can try to take on use_jailbreak.
+  tested models:
+  - llama-3.2-11b
+  - llama-3.2-90b
+  - gemini-1.5-flash
+  - gemini-1.5-pro
+  - pixtral-12b-latest
