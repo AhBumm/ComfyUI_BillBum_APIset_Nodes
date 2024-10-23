@@ -16,6 +16,9 @@ In ComfyUI Manager Menu "Install via Git URL"
 ```
 https://github.com/AhBumm/ComfyUI_BillBum_Nodes.git
 ```
+Or search "billbum" in ComfyUI Manager
+![image](https://github.com/user-attachments/assets/86ec81bf-2fff-4875-9ce9-f122feac79d7)
+
 install requirements with comfyui embeded python
 ```
 pip install -r requirements.txt
