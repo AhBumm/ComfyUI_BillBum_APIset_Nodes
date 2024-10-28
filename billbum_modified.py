@@ -84,6 +84,7 @@ class BillBum_Modified_Dalle_API_Node:
         return {
             "required": {
                 "prompt": ("STRING", {"defaultInput": True},),
+                "model": ("STRING", {"default": "dall-e-3",}),
                 "size": (["1024x1024", "512x512", "256x256"],),
                 "quality": (["hd", "standard"],),
                 "n": ("INT", {
@@ -110,13 +111,13 @@ class BillBum_Modified_Dalle_API_Node:
     CATEGORY = "BillBum_API"
 
     @tenacity.retry(wait=tenacity.wait_exponential(multiplier=1, min=4, max=10))
-    def get_dalle_3_image(self, prompt, size, quality, n, api_url, api_key):
+    def get_dalle_3_image(self, prompt, model, size, quality, n, api_url, api_key):
         client = OpenAI(
             api_key=api_key,
             base_url=api_url
         )
         response = client.images.generate(
-            model="dall-e-3",
+            model=model,
             prompt=prompt,
             size=size,
             quality=quality,
@@ -507,8 +508,8 @@ class BillBum_Modified_SD3_API_Node:
 
         response = requests.post(url, json=payload, headers=headers)
 
-        print(f"HTTP 状态码: {response.status_code}")
-        print(f"响应内容: {response.text}")
+        print(f"HTTP status: {response.status_code}")
+        print(f"response: {response.text}")
 
         response.raise_for_status()
         response_json = response.json()
@@ -564,8 +565,8 @@ class BillBum_Modified_Flux_API_Node:
 
         response = requests.post(api_url, headers=headers, json=data)
 
-        print(f"HTTP 状态码: {response.status_code}")
-        print(f"响应内容: {response.text}")
+        print(f"HTTP status: {response.status_code}")
+        print(f"response: {response.text}")
 
         response.raise_for_status()
         response_json = response.json()
