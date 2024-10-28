@@ -377,7 +377,7 @@ Are you in agreement with these instructions? Please respond with "Ok!"
         else:
             completion = client.chat.completions.create(
                 model=model,
-                temperature=0.55,
+                temperature=0.5,
                 # frequency_penalty=0,
                 # presence_penalty=0,
                 messages=[
