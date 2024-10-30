@@ -20,6 +20,10 @@ including DALL-E, OpenAI's LLMs, other LLMs api platform, also other image gener
   - gemini-1.5-flash
   - gemini-1.5-pro
   - pixtral-12b-latest
+- **Add Image API Call Node**
+  Theoretically you can request and test any t2i model api in this node
+  ![image](https://github.com/user-attachments/assets/72b4c6d0-c3bb-4122-b624-0e7d8e0ab7e8)
+
 
 ## Installation
 In ComfyUI Manager Menu "Install via Git URL"
