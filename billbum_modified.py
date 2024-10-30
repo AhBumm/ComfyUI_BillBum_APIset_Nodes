@@ -541,7 +541,7 @@ class BillBum_Modified_Flux_API_Node:
         }
 
     RETURN_TYPES = ("STRING", "INT",)
-    RETURN_NAMES = ("image_url", "seed",)
+    RETURN_NAMES = ("base64_url", "seed",)
     FUNCTION = "get_t2i_image"
     CATEGORY = "BillBum_API"
 
@@ -560,22 +560,21 @@ class BillBum_Modified_Flux_API_Node:
             "steps": steps,
             "height": height,
             "width": width,
-            "response_format": "url",
+            "response_format": "b64_json",
             "output_format": "webp"
         }
 
         response = requests.post(api_url, headers=headers, json=data)
-
-        print(f"HTTP status: {response.status_code}")
-        print(f"response: {response.text}")
-
+        print(f"HTTP status code: {response.status_code}")
         response.raise_for_status()
-        response_json = response.json()
 
-        image_url = response_json["data"][0]["url"]
-        if not image_url:
-            raise Exception(f"Image URL not found in response: {response_json}")
-        return (image_url, seed)
+        response_json = response.json()
+        try:
+            b64_string = response_json['data'][0]['b64_json']
+            base64_url = f"data:image/webp;base64,{b64_string}"
+            return (base64_url, seed)
+        except (KeyError, IndexError) as e:
+            raise Exception(f"Unexpected response format: {e}")
 
 class BillBum_Modified_Together_API_Node:
 
@@ -657,6 +656,64 @@ class BillBum_Modified_Together_API_Node:
         b64_string = response.data[0].b64_json
         base64_url = f"data:image/png;base64,{b64_string}"
         return (base64_url,)
+
+class BillBum_Modified_Image_API_Call_Node:
+
+    def __init__(self):
+        pass
+
+    @classmethod
+    def INPUT_TYPES(s):
+        return {
+            "required": {
+                "payload": ("STRING", {"multiline": True, "defaultInput": True}),
+                "api_url": ("STRING", {
+                    "multiline": False,
+                    "default": "https://api.hyprlab.io/v1/images/generations",
+                }),
+                "api_key": ("STRING", {
+                    "multiline": False,
+                    "default": "YOUR_API_KEY_HERE",
+                }),
+            },
+        }
+
+    RETURN_TYPES = ("STRING",)
+    RETURN_NAMES = ("image_url",)
+    FUNCTION = "get_json_image"
+    CATEGORY = "BillBum_API"
+
+    @tenacity.retry(wait=tenacity.wait_exponential(multiplier=1, min=5, max=10))
+    def get_json_image(self, payload, api_url, api_key):
+
+        url = api_url
+
+        payload_str = payload.strip()
+        if not (payload_str.startswith('{') and payload_str.endswith('}')):
+            payload_str = '{' + payload_str + '}'
+
+        try:
+            payload_json = json.loads(payload_str)
+        except json.JSONDecodeError as e:
+            raise ValueError(f"Invalid JSON payload: {e}")
+
+        headers = {
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {api_key}"
+        }
+
+        response = requests.post(url, json=payload_json, headers=headers)
+
+        print(f"HTTP status: {response.status_code}")
+        print(f"response: {response.text}")
+
+        response.raise_for_status()
+        response_json = response.json()
+
+        image_url = response_json["data"][0]["url"]
+        if not image_url:
+            raise Exception(f"Image URL not found in response: {response_json}")
+        return (image_url,)
 
 class BillBum_Modified_Base64_Url2Img_Node:
 
