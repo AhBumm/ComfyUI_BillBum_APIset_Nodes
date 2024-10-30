@@ -5,3 +5,4 @@ requests
 together
 torch
 numpy
+tiktoken

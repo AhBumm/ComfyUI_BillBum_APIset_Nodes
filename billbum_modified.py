@@ -13,6 +13,7 @@ import requests
 import json
 from together import Together
 import re
+import tiktoken
 
 META_PROMPT = """
 Given a task description or existing prompt, produce a detailed system prompt to guide a language model in completing the task effectively.
@@ -784,6 +785,75 @@ class BillBum_Modified_RegText_Node:
         text = re.sub(r"[^a-zA-Z0-9\s,'-]", "", text)
         
         return (text,)
+
+class BillBum_Modified_DropoutToken_Node:
+
+    def __init__(self):
+        pass
+
+    @classmethod
+    def INPUT_TYPES(s):
+        return {
+            "required": {
+                "input_text": ("STRING", {"defaultInput": True}),
+                "max_tokens": ("INT", {"default": 300, "min": 1}),
+                "dropout_method": (["random", "tail", "head"],),
+            },
+        }
+
+    RETURN_TYPES = ("STRING",)
+    RETURN_NAMES = ("processed_text",)
+    FUNCTION = "limit_tokens"
+    CATEGORY = "text_processing"
+
+    def limit_tokens(self, input_text, max_tokens, reduction_method):
+        
+        tokenizer = tiktoken.encoding_for_model('gpt-3.5-turbo')
+        
+        tokens = tokenizer.encode(input_text)
+        num_tokens = len(tokens)
+
+        if num_tokens <= max_tokens:
+            
+            return (input_text,)
+        else:
+            
+            sentences = re.split(r'(?<=[.!?]) +', input_text)
+            sentences = [s for s in sentences if s.strip()]
+            new_text = ' '.join(sentences)
+
+            if reduction_method == 'random':
+                while num_tokens > max_tokens and len(sentences) > 1:
+                    
+                    idx = random.randint(0, len(sentences) - 1)
+                    sentences.pop(idx)
+                    new_text = ' '.join(sentences)
+                    tokens = tokenizer.encode(new_text)
+                    num_tokens = len(tokens)
+            elif reduction_method == 'tail':
+                while num_tokens > max_tokens and len(sentences) > 1:
+                    sentences.pop()
+                    new_text = ' '.join(sentences)
+                    tokens = tokenizer.encode(new_text)
+                    num_tokens = len(tokens)
+            elif reduction_method == 'head':
+                while num_tokens > max_tokens and len(sentences) > 1:
+                    sentences.pop(0)
+                    new_text = ' '.join(sentences)
+                    tokens = tokenizer.encode(new_text)
+                    num_tokens = len(tokens)
+            else:
+                while num_tokens > max_tokens and len(sentences) > 1:
+                    sentences.pop()
+                    new_text = ' '.join(sentences)
+                    tokens = tokenizer.encode(new_text)
+                    num_tokens = len(tokens)
+
+            if num_tokens <= max_tokens:
+                processed_text = new_text
+            else:
+                processed_text = ''
+            return (processed_text,)
 
 # Ensure these mappings are correctly integrated into your ComfyUI environment
 NODE_CLASS_MAPPINGS = {
