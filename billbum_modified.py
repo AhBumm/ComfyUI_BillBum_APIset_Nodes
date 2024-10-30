@@ -111,7 +111,7 @@ class BillBum_Modified_Dalle_API_Node:
     FUNCTION = "get_dalle_3_image"
     CATEGORY = "BillBum_API"
 
-    @tenacity.retry(wait=tenacity.wait_exponential(multiplier=1, min=4, max=10))
+    @tenacity.retry(wait=tenacity.wait_exponential(multiplier=1, min=5, max=10))
     def get_dalle_3_image(self, prompt, model, size, quality, n, api_url, api_key):
         client = OpenAI(
             api_key=api_key,
@@ -165,7 +165,7 @@ class BillBum_Modified_LLM_API_Node:
     FUNCTION = "get_llm_response"
     CATEGORY = "BillBum_API"
 
-    @tenacity.retry(wait=tenacity.wait_exponential(multiplier=1, min=4, max=10))
+    @tenacity.retry(wait=tenacity.wait_exponential(multiplier=1, min=5, max=10))
     def get_llm_response(self, prompt, model, api_url, api_key, system_prompt, use_meta_prompt, seed):
 
         random.seed(seed)
@@ -214,7 +214,7 @@ class BillBum_Modified_Structured_LLM_Node:
     FUNCTION = "get_llm_structured_response"
     CATEGORY = "BillBum_API"
 
-    @tenacity.retry(wait=tenacity.wait_exponential(multiplier=1, min=4, max=10))
+    @tenacity.retry(wait=tenacity.wait_exponential(multiplier=1, min=5, max=10))
     def get_llm_structured_response(self, prompt, model, api_url, api_key, system_prompt, output_format, seed):
         
         META_SCHEMA = json.loads(output_format)
@@ -278,7 +278,7 @@ class BillBum_Modified_VisionLM_API_Node:
     FUNCTION = "get_vlm_response"
     CATEGORY = "BillBum_API"
 
-    @tenacity.retry(wait=tenacity.wait_exponential(multiplier=1, min=4, max=10))
+    @tenacity.retry(wait=tenacity.wait_exponential(multiplier=1, min=5, max=10))
     def get_vlm_response(self, prompt, model, api_url, api_key, system_prompt, image, use_jailbreak, seed):
 
         if system_prompt == "" and use_jailbreak:
@@ -483,7 +483,7 @@ class BillBum_Modified_SD3_API_Node:
     FUNCTION = "get_sd3_image"
     CATEGORY = "BillBum_API"
 
-    @tenacity.retry(wait=tenacity.wait_exponential(multiplier=1, min=4, max=10))
+    @tenacity.retry(wait=tenacity.wait_exponential(multiplier=1, min=5, max=10))
     def get_sd3_image(self, prompt, negative_prompt, model, aspect_ratio, seed, api_url, api_key, style_preset):
 
         random.seed(seed)
@@ -545,7 +545,7 @@ class BillBum_Modified_Flux_API_Node:
     FUNCTION = "get_t2i_image"
     CATEGORY = "BillBum_API"
 
-    @tenacity.retry(wait=tenacity.wait_exponential(multiplier=1, min=4, max=10))
+    @tenacity.retry(wait=tenacity.wait_exponential(multiplier=1, min=5, max=10))
     def get_t2i_image(self, model, prompt, width, height, steps, api_url, seed, api_key):
         random.seed(seed)
 
@@ -636,7 +636,7 @@ class BillBum_Modified_Together_API_Node:
     FUNCTION = "get_together_image"
     CATEGORY = "BillBum_API"
 
-    @tenacity.retry(wait=tenacity.wait_exponential(multiplier=1, min=4, max=10))
+    @tenacity.retry(wait=tenacity.wait_exponential(multiplier=1, min=5, max=10))
     def get_together_image(self, model, prompt, width, height, steps, n, seed, api_key):
 
         random.seed(seed)
