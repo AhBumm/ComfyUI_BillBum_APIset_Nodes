@@ -154,6 +154,12 @@ class BillBum_Modified_LLM_API_Node:
                 "system_prompt": ("STRING", {
                     "multiline": True,
                 }),
+                "temperature": ("FLOAT", {
+                    "default": 1.0,
+                    "min": 0.0,
+                    "max": 2.0,
+                    "step": 0.05,
+                }),
                 "use_meta_prompt": ("BOOLEAN", {
                     "default": False,
                 }),
@@ -166,7 +172,7 @@ class BillBum_Modified_LLM_API_Node:
     CATEGORY = "BillBum_API"
 
     @tenacity.retry(wait=tenacity.wait_exponential(multiplier=1, min=5, max=10))
-    def get_llm_response(self, prompt, model, api_url, api_key, system_prompt, use_meta_prompt, seed):
+    def get_llm_response(self, prompt, model, api_url, api_key, system_prompt, temperature, use_meta_prompt, seed):
 
         random.seed(seed)
         final_system_prompt = META_PROMPT if use_meta_prompt else system_prompt
@@ -177,6 +183,8 @@ class BillBum_Modified_LLM_API_Node:
         )
         completion = client.chat.completions.create(
             model=model,
+            seed=seed,
+            temperature=temperature,
             messages=[
                 {'role':'system', 'content': final_system_prompt},
                 {'role': 'user', 'content': prompt}]
