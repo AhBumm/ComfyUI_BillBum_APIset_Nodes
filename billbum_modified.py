@@ -584,6 +584,75 @@ class BillBum_Modified_Flux_API_Node:
         except (KeyError, IndexError) as e:
             raise Exception(f"Unexpected response format: {e}")
 
+class BillBum_Modified_Recraft_API_Node:
+
+    def __init__(self):
+        pass
+
+    @classmethod
+    def INPUT_TYPES(s):
+        return {
+            "required": {
+                "prompt": ("STRING", {"defaultInput": True},),
+                "model": ("STRING", {
+                    "multiline": False,
+                    "default": "recraft-v3",
+                }),
+                "size": (["1024x1024", "1365x1024", "1024x1365", "1536x1024", "1024x1536", "1820x1024", "1024x1820", "1024x2048", "2048x1024", "1434x1024", "1024x1434", "1024x1280", "1280x1024", "1024x1707", "1707x1024"],),
+                "seed": ("INT", {
+                     "default": 0, "min": 0, "max": 0xffffffffffffffff
+                }),
+                "api_url": ("STRING", {
+                    "multiline": False,
+                    "default": "https://api.hyprlab.io/v1/images/generations",
+                }),
+                "api_key": ("STRING", {
+                    "multiline": False,
+                    "default": "YOUR_API_KEY_HERE",
+                }),
+                "style_type": (
+                    ["digital_illustration", "digital_illustration/pixel_art", "digital_illustration/hand_drawn", "digital_illustration/grain", "digital_illustration/infantile_sketch","digital_illustration/2d_art_poster", "digital_illustration/handmade_3d", "digital_illustration/hand_drawn_outline", "digital_illustration/engraving_color", "digital_illustration/2d_art_poster_2","realistic_image", "realistic_image/b_and_w", "realistic_image/hard_flash", "realistic_image/hdr", "realistic_image/natural_light", "realistic_image/studio_portrait","realistic_image/enterprise", "realistic_image/motion_blur", "vector_illustration", "vector_illustration/engraving", "vector_illustration/line_art","vector_illustration/line_circuit", "vector_illustration/linocut"],
+                ),
+            },
+        }
+
+    RETURN_TYPES = ("STRING",)
+    RETURN_NAMES = ("image_url",)
+    FUNCTION = "get_recraft_image"
+    CATEGORY = "BillBum_API"
+
+    @tenacity.retry(wait=tenacity.wait_exponential(multiplier=1, min=4, max=10))
+    def get_recraft_image(self, prompt, size, model, seed, api_url, api_key, style_type,):
+
+        random.seed(seed)
+        
+        headers = {
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {api_key}"
+        }
+
+        data = {
+            "model": model,
+            "prompt": prompt,
+            "size": size,
+            "style": style_type,
+            "response_format": "url",
+            "output_format": "webp"
+        }
+
+        response = requests.post(api_url, json=data, headers=headers)
+
+        print(f"HTTP status: {response.status_code}")
+        print(f"response: {response.text}")
+
+        response.raise_for_status()
+        response_json = response.json()
+
+        image_url = response_json["data"][0]["url"]
+        if not image_url:
+            raise Exception(f"Image URL not found in response: {response_json}")
+        return (image_url,)
+
 class BillBum_Modified_Together_API_Node:
 
     def __init__(self):
