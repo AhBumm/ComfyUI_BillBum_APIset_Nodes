@@ -76,6 +76,26 @@ def pil2tensor(images: Image.Image | list[Image.Image]) -> torch.Tensor:
     else:
         return torch.cat([single_pil2tensor(img) for img in images], dim=0)
 
+class Input_Text:
+
+    def __init__(self):
+        pass
+
+    @classmethod
+    def INPUT_TYPES(s):
+        return {
+            "required": {
+                "text": ("STRING",),
+            },
+        }
+    
+    RETURN_TYPES = ("STRING",)
+    RETURN_NAMES = ("text",)
+    FUNCTION = "input_text"
+    CATEGORY = "string processing"
+    def input_text(self, text):
+        return (text,)
+
 class BillBum_Modified_Dalle_API_Node:
 
     def __init__(self):
