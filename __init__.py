@@ -13,6 +13,11 @@ NODE_CLASS_MAPPINGS = {
     "BillBum_Modified_Structured_LLM_Node(Imperfect)": BillBum_Modified_Structured_LLM_Node,
     "BillBum_Modified_Flux_API_Node": BillBum_Modified_Flux_API_Node,
     "BillBum_Modified_RegText_Node": BillBum_Modified_RegText_Node,
+    "BillBum_Modified_DropoutToken_Node": BillBum_Modified_DropoutToken_Node,
+    "BillBum_Modified_Image_API_Call_Node": BillBum_Modified_Image_API_Call_Node,
+    "BillBum_Modified_Recraft_API_Node": BillBum_Modified_Recraft_API_Node,
+    "Text_Concat": Text_Concat,
+    "Input_Text": Input_Text,
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {

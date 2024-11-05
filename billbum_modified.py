@@ -76,6 +76,29 @@ def pil2tensor(images: Image.Image | list[Image.Image]) -> torch.Tensor:
     else:
         return torch.cat([single_pil2tensor(img) for img in images], dim=0)
 
+class Text_Concat:
+
+    def __init__(self):
+        pass
+
+    @classmethod
+    def INPUT_TYPES(s):
+        return {
+            "required": {
+                "text_1": ("STRING", {"defaultInput": True},),
+                "text_2": ("STRING", {"defaultInput": True},),
+            },
+        }
+    
+    RETURN_TYPES = ("STRING",)
+    RETURN_NAMES = ("text",)
+    FUNCTION = "text_concat"
+    CATEGORY = "string processing"
+
+    def text_concat(self, text_1, text_2):
+        text = [text_1, " ", text_2]
+        return (text,)
+
 class Input_Text:
 
     def __init__(self):
@@ -85,7 +108,7 @@ class Input_Text:
     def INPUT_TYPES(s):
         return {
             "required": {
-                "text": ("STRING",),
+                "text": ("STRING", {"multiline": True},),
             },
         }
     
