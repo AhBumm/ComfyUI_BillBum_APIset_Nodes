@@ -96,7 +96,7 @@ class Text_Concat:
     CATEGORY = "string processing"
 
     def text_concat(self, text_1, text_2):
-        text = [text_1, " ", text_2]
+        text = f"{text_1} {text_2}"
         return (text,)
 
 class Input_Text:
