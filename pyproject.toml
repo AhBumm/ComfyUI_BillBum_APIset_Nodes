@@ -10,6 +10,6 @@ Repository = "https://github.com/AhBumm/ComfyUI_BillBum_Nodes"
 #  Used by Comfy Registry https://comfyregistry.org
 
 [tool.comfy]
-PublisherId = ""
+PublisherId = "billbum"
 DisplayName = "ComfyUI_BillBum_Nodes"
 Icon = ""
