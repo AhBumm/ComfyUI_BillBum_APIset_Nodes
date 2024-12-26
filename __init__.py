@@ -18,6 +18,7 @@ NODE_CLASS_MAPPINGS = {
     "BillBum_Modified_Recraft_API_Node": BillBum_Modified_Recraft_API_Node,
     "Text_Concat": Text_Concat,
     "Input_Text": Input_Text,
+    "BillBum_Modified_Ideogram_API_Node": BillBum_Modified_Ideogram_API_Node,
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {

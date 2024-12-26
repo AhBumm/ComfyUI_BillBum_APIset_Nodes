@@ -1032,6 +1032,86 @@ class BillBum_Modified_DropoutToken_Node:
                 processed_text = ''
             return (processed_text,)
 
+class BillBum_Modified_Ideogram_API_Node:
+
+    def __init__(self):
+        pass
+
+    @classmethod
+    def INPUT_TYPES(s):
+        return {
+            "required": {
+                "prompt": ("STRING", {"defaultInput": True},),
+                "negative_prompt": ("STRING", {"defaultInput": True},),
+                "model": (["STRING", {"default": "ideogram-v2"}]),
+                "aspect_ratio": ([
+                    "1:1", "16:9", "4:3", "2:3", "3:2", "16:10", "10:16", "9:16", "3:4", "1:3", "3:1",
+                ],),
+                "seed": ("INT", {
+                     "default": 0, "min": 0, "max": 4294967294
+                }),
+                "api_url": ("STRING", {
+                    "multiline": False,
+                    "default": "https://api.hyprlab.io/v1/images/generations",
+                }),
+                "api_key": ("STRING", {
+                    "multiline": False,
+                    "default": "YOUR_API_KEY_HERE",
+                }),
+                "style_type": ([
+                    "Auto",
+                    "General",
+                    "Realistic",
+                    "Design",
+                    "Render 3D",
+                    "Anime",
+                ],),
+                "magic_prompt_option": ([
+                        "Auto",
+                        "On",
+                        "Off"
+                    ],),
+            },
+        }
+
+    RETURN_TYPES = ("STRING",)
+    RETURN_NAMES = ("b64_url",)
+    FUNCTION = "get_ideogram_image"
+    CATEGORY = "BillBum_API"
+
+    @tenacity.retry(wait=tenacity.wait_exponential(multiplier=1, min=5, max=10))
+    def get_ideogram_image(self, model, prompt, negative_prompt, aspect_ratio, seed, api_url, api_key, style_type, magic_prompt_option,):
+        random.seed(seed)
+
+        headers = {
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {api_key}"
+        }
+
+        data = {
+            "model": model,
+            "prompt": prompt,
+            "negative_prompt": negative_prompt,
+            "aspect_ratio": aspect_ratio,
+            "seed": seed,
+            "style_type": style_type,
+            "magic_prompt_option": magic_prompt_option,
+            "response_format": "b64_json",
+            "output_format": "webp"
+        }
+
+        response = requests.post(api_url, headers=headers, json=data)
+        print(f"HTTP status code: {response.status_code}")
+        response.raise_for_status()
+
+        response_json = response.json()
+        try:
+            b64_string = response_json['data'][0]['b64_json']
+            base64_url = f"data:image/webp;base64,{b64_string}"
+            return (base64_url, seed)
+        except (KeyError, IndexError) as e:
+            raise Exception(f"Unexpected response format: {e}")
+
 # Ensure these mappings are correctly integrated into your ComfyUI environment
 NODE_CLASS_MAPPINGS = {
 }
