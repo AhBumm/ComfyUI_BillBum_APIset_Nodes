@@ -131,12 +131,16 @@ class BillBum_Modified_Dalle_API_Node:
                 "model": ("STRING", {"default": "dall-e-3",}),
                 "size": (["1024x1024", "512x512", "256x256"],),
                 "quality": (["hd", "standard"],),
+                "style": (["None", "vivid", "natural"],),
                 "n": ("INT", {
                     "default": 1,
                     "min": 1,
                     "max": 4,
                     "step": 1,
                     "display": "number",
+                }),
+                "seed": ("INT", {
+                     "default": 0, "min": 0, "max": 0xffffffffffffffff
                 }),
                 "api_url": ("STRING", {
                     "multiline": False,
@@ -149,27 +153,43 @@ class BillBum_Modified_Dalle_API_Node:
             },
         }
 
-    RETURN_TYPES = ("STRING",)
-    RETURN_NAMES = ("image_url",)
+    RETURN_TYPES = ("STRING","STRING",)
+    RETURN_NAMES = ("b64_url","revised_prompt",)
     FUNCTION = "get_dalle_3_image"
     CATEGORY = "BillBum_API"
 
     @tenacity.retry(wait=tenacity.wait_exponential(multiplier=1, min=5, max=10))
-    def get_dalle_3_image(self, prompt, model, size, quality, n, api_url, api_key):
+    def get_dalle_3_image(self, prompt, model, size, quality, n, api_url, api_key,seed, style):
+        random.seed(seed)
         client = OpenAI(
             api_key=api_key,
             base_url=api_url
         )
-        response = client.images.generate(
-            model=model,
-            prompt=prompt,
-            size=size,
-            quality=quality,
-            n=n,
-        )
+        if style == "None":
+            response = client.images.generate(
+                model=model,
+                prompt=prompt,
+                size=size,
+                quality=quality,
+                n=n,
+                response_format="b64_json",
+            )
+        else:
+            response = client.images.generate(
+                model=model,
+                prompt=prompt,
+                size=size,
+                quality=quality,
+                n=n,
+                response_format="b64_json",
+                style=style,
+            )
 
-        image_url = response.data[0].url
-        return (image_url,)
+        b64_data = response.data[0].b64_json
+        revised_prompt = response.data[0].revised_prompt
+        b64_url = f"data:image/png;base64,{b64_data}"
+        real_prompt = f"{revised_prompt}"
+        return (b64_url,real_prompt)
 
 class BillBum_Modified_LLM_API_Node:
 
@@ -372,6 +392,9 @@ Additional Keywords: {List relevant keywords for the image}"
 
 When you've understood and are ready to generate prompts in this format, please respond with "Ready to generate prompts."
 ```"""
+        else:
+            system_prompt=system_prompt
+
         random.seed(seed)
 
         client = OpenAI(
