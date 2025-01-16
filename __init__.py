@@ -19,6 +19,7 @@ NODE_CLASS_MAPPINGS = {
     "Text_Concat": Text_Concat,
     "Input_Text": Input_Text,
     "BillBum_Modified_Ideogram_API_Node": BillBum_Modified_Ideogram_API_Node,
+    "BillBum_NonSysPrompt_VLM_API_Node": BillBum_NonSysPrompt_VLM_API_Node,
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
