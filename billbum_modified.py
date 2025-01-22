@@ -1134,10 +1134,8 @@ class BillBum_Modified_RegText_Node:
     CATEGORY = "text_processing"
 
     def de_warp_text(self, input_text):
-        # Remove newline characters and replace periods with commas
         text = input_text.replace('\n', '').replace('.', ',')
-        
-        # Use regex to remove all characters except letters, numbers, spaces, commas, single quotes, and hyphen
+        text = re.sub(r"<[^>]*>", "", text)
         text = re.sub(r"[^a-zA-Z0-9\s,'-]", "", text)
         
         return (text,)
