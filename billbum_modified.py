@@ -1134,7 +1134,7 @@ class BillBum_Modified_RegText_Node:
     CATEGORY = "text_processing"
 
     def de_warp_text(self, input_text):
-        text = re.sub(r"<think>.*?<\/think>", "", input_text)
+        text = re.sub(r"<think>.*?</think>", "", input_text, flags=re.DOTALL)
         text = text.replace('\n', '').replace('.', ',')
         text = re.sub(r"[^a-zA-Z0-9\s,'-]", "", text)
         
