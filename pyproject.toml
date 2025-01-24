@@ -1,7 +1,7 @@
 [project]
 name = "comfyui_billbum_nodes"
 description = "API call node for Third-party platforms both official and local. Support VLMs LLMs Dalle3 Flux-Pro SD3 etc. And some little tools: img to b64 url, b64 url to img, b64 url to b64 data, reg text to word and ',' only, etc."
-version = "1.0.4"
+version = "1.0.5"
 license = {file = "LICENSE"}
 dependencies = ["tenacity", "openai", "pillow", "requests", "together", "torch", "numpy", "tiktoken"]
 
