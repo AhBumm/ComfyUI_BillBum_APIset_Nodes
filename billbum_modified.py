@@ -11,7 +11,6 @@ from torchvision.transforms.v2 import ToPILImage
 import tempfile
 import requests
 import json
-from together import Together
 import re
 import tiktoken
 
@@ -875,87 +874,6 @@ class BillBum_Modified_Recraft_API_Node:
             raise Exception(f"Image URL not found in response: {response_json}")
         return (image_url,)
 
-class BillBum_Modified_Together_API_Node:
-
-    def __init__(self):
-            pass
-
-    @classmethod
-    def INPUT_TYPES(s):
-        return {
-            "required": {
-                "model": ("STRING", {
-                    "default": "black-forest-labs/FLUX.1.1-pro",
-                }),
-                "prompt": ("STRING", {
-                    "defaultInput": True,
-                }),
-                "width": ("INT", {
-                    "default": 1024,
-                    "min": 512,
-                    "max": 2048,
-                    "step": 64,
-                    "display": "number",
-                }),
-                "height": ("INT", {
-                    "default": 1024,
-                    "min": 512,
-                    "max": 2048,
-                    "step": 64,
-                    "display": "number",
-                }),
-                "steps": ("INT", {
-                    "default": 1,
-                    "min": 1,
-                    "max": 30,
-                    "step": 1,
-                    "display": "number",
-                }),
-                "n": ("INT", {
-                    "default": 1,
-                    "min": 1,
-                    "max": 4,
-                    "step": 1,
-                    "display": "number",
-                }),
-                "seed": ("INT", {
-                    "default": 0,
-                    "min": 0,
-                    "max": 10000,
-                }),
-                "api_key": ("STRING", {
-                    "default": "YOUR_API_KEY_HERE",
-                }),
-            },
-        }
-
-    RETURN_TYPES = ("STRING",)
-    RETURN_NAMES = ("Base64_url",)
-    FUNCTION = "get_together_image"
-    CATEGORY = "BillBum_API"
-
-    @tenacity.retry(wait=tenacity.wait_exponential(multiplier=1, min=5, max=10))
-    def get_together_image(self, model, prompt, width, height, steps, n, seed, api_key):
-
-        random.seed(seed)
-
-        client = Together(
-            api_key=api_key,
-        )
-        response = client.images.generate(
-            prompt=prompt,
-            model=model,
-            width=width,
-            height=height,
-            steps=steps,
-            n=n,
-            seed=seed,
-            response_format="b64_json",
-        )
-        b64_string = response.data[0].b64_json
-        base64_url = f"data:image/png;base64,{b64_string}"
-        return (base64_url,)
-
 class BillBum_Modified_Image_API_Call_Node:
 
     def __init__(self):
@@ -1124,6 +1042,12 @@ class BillBum_Modified_RegText_Node:
     def INPUT_TYPES(s):
         return {
             "required": {
+                "remove_thinking": ("BOOLEAN", {
+                    "default": False,
+                }),
+                "remove_lora_name": ("BOOLEAN", {
+                    "default": False,
+                }),
                 "input_text": ("STRING", {"defaultInput": True},),
             },
         }
@@ -1133,12 +1057,15 @@ class BillBum_Modified_RegText_Node:
     FUNCTION = "de_warp_text"
     CATEGORY = "text_processing"
 
-    def de_warp_text(self, input_text):
-        text = re.sub(r".*?</think>", "", input_text, flags=re.DOTALL)
-        text = text.replace('\n', '').replace('.', ',')
-        text = re.sub(r"[^a-zA-Z0-9\s,'-]", "", text)
+    def de_warp_text(self, input_text, remove_thinking=False, remove_lora_name=False):
+        if remove_thinking:
+            input_text = re.sub(r".*?</think>", "", input_text, flags=re.DOTALL)
+        input_text = input_text.replace('\n', '').replace('.', ',')
+        input_text = re.sub(r"[^a-zA-Z0-9\s/<>\\(),'-]", "", input_text)
+        if remove_lora_name: 
+            input_text = re.sub(r"<.*?>", "", input_text, flags=re.DOTALL)
         
-        return (text,)
+        return (input_text,)
 
 class BillBum_Modified_DropoutToken_Node:
 

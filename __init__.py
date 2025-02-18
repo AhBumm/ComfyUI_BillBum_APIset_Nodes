@@ -6,7 +6,6 @@ NODE_CLASS_MAPPINGS = {
     "BillBum_Modified_img2b64_url_Node": BillBum_Modified_img2url_Node,
     "BillBum_Modified_VisionLM_API_Node": BillBum_Modified_VisionLM_API_Node,
     "BillBum_Modified_SD3_API_Node": BillBum_Modified_SD3_API_Node,
-    "BillBum_Modified_Together_API_Node": BillBum_Modified_Together_API_Node,
     "BillBum_Modified_Base64_Url2Img_Node": BillBum_Modified_Base64_Url2Img_Node,
     "BillBum_Modified_ImageSplit_Node": BillBum_Modified_ImageSplit_Node,
     "BillBum_Modified_Base64_Url2Data_Node": BillBum_Modified_Base64_Url2Data_Node,

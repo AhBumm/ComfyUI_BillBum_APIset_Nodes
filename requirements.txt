@@ -2,7 +2,6 @@ tenacity
 openai
 pillow
 requests
-together
 torch
 numpy
 tiktoken
