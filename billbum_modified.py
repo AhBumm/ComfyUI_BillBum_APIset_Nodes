@@ -157,7 +157,7 @@ class BillBum_Modified_Dalle_API_Node:
     FUNCTION = "get_dalle_3_image"
     CATEGORY = "BillBum_API"
 
-    @tenacity.retry(wait=tenacity.wait_exponential(multiplier=1, min=5, max=10))
+    @tenacity.retry(wait=tenacity.wait_exponential(multiplier=1.25, min=5, max=30), stop=tenacity.stop_after_attempt(5))
     def get_dalle_3_image(self, prompt, model, size, quality, n, api_url, api_key,seed, style):
         random.seed(seed)
         client = OpenAI(
@@ -233,7 +233,7 @@ class BillBum_Modified_LLM_API_Node:
     FUNCTION = "get_llm_response"
     CATEGORY = "BillBum_API"
 
-    @tenacity.retry(wait=tenacity.wait_exponential(multiplier=1, min=5, max=10))
+    @tenacity.retry(wait=tenacity.wait_exponential(multiplier=1.25, min=5, max=30))
     def get_llm_response(self, prompt, model, api_url, api_key, system_prompt, temperature, use_meta_prompt, seed):
 
         random.seed(seed)
@@ -284,7 +284,7 @@ class BillBum_Modified_Structured_LLM_Node:
     FUNCTION = "get_llm_structured_response"
     CATEGORY = "BillBum_API"
 
-    @tenacity.retry(wait=tenacity.wait_exponential(multiplier=1, min=5, max=10))
+    @tenacity.retry(wait=tenacity.wait_exponential(multiplier=1.25, min=5, max=30))
     def get_llm_structured_response(self, prompt, model, api_url, api_key, system_prompt, output_format, seed):
         
         META_SCHEMA = json.loads(output_format)
@@ -348,7 +348,7 @@ class BillBum_Modified_VisionLM_API_Node:
     FUNCTION = "get_vlm_response"
     CATEGORY = "BillBum_API"
 
-    @tenacity.retry(wait=tenacity.wait_exponential(multiplier=1, min=5, max=10))
+    @tenacity.retry(wait=tenacity.wait_exponential(multiplier=1.25, min=5, max=30))
     def get_vlm_response(self, prompt, model, api_url, api_key, system_prompt, image, use_jailbreak, seed):
 
         if system_prompt == "" and use_jailbreak:
@@ -504,7 +504,7 @@ class BillBum_NonSysPrompt_VLM_API_Node:
     FUNCTION = "get_vlm_nsp_response"
     CATEGORY = "BillBum_API"
 
-    @tenacity.retry(wait=tenacity.wait_exponential(multiplier=1, min=5, max=10))
+    @tenacity.retry(wait=tenacity.wait_exponential(multiplier=1.25, min=5, max=30))
     def get_vlm_nsp_response(self, prompt, model, api_url, api_key, system_prompt, image, use_jailbreak, seed):
 
         if system_prompt == "" and use_jailbreak:
@@ -712,7 +712,7 @@ class BillBum_Modified_SD3_API_Node:
     FUNCTION = "get_sd3_image"
     CATEGORY = "BillBum_API"
 
-    @tenacity.retry(wait=tenacity.wait_exponential(multiplier=1, min=5, max=10))
+    @tenacity.retry(wait=tenacity.wait_exponential(multiplier=1.25, min=5, max=30))
     def get_sd3_image(self, prompt, negative_prompt, model, aspect_ratio, seed, api_url, api_key, style_preset):
 
         random.seed(seed)
@@ -774,7 +774,7 @@ class BillBum_Modified_Flux_API_Node:
     FUNCTION = "get_t2i_image"
     CATEGORY = "BillBum_API"
 
-    @tenacity.retry(wait=tenacity.wait_exponential(multiplier=1, min=5, max=10))
+    @tenacity.retry(wait=tenacity.wait_exponential(multiplier=1.25, min=5, max=30))
     def get_t2i_image(self, model, prompt, width, height, steps, api_url, seed, api_key):
         random.seed(seed)
 
@@ -842,7 +842,7 @@ class BillBum_Modified_Recraft_API_Node:
     FUNCTION = "get_recraft_image"
     CATEGORY = "BillBum_API"
 
-    @tenacity.retry(wait=tenacity.wait_exponential(multiplier=1, min=4, max=10))
+    @tenacity.retry(wait=tenacity.wait_exponential(multiplier=1.25, min=4, max=30))
     def get_recraft_image(self, prompt, size, model, seed, api_url, api_key, style_type,):
 
         random.seed(seed)
@@ -900,7 +900,7 @@ class BillBum_Modified_Image_API_Call_Node:
     FUNCTION = "get_json_image"
     CATEGORY = "BillBum_API"
 
-    @tenacity.retry(wait=tenacity.wait_exponential(multiplier=1, min=5, max=10))
+    @tenacity.retry(wait=tenacity.wait_exponential(multiplier=1.25, min=5, max=30))
     def get_json_image(self, payload, api_url, api_key):
 
         url = api_url
@@ -1183,7 +1183,7 @@ class BillBum_Modified_Ideogram_API_Node:
     FUNCTION = "get_ideogram_image"
     CATEGORY = "BillBum_API"
 
-    @tenacity.retry(wait=tenacity.wait_exponential(multiplier=1, min=5, max=10))
+    @tenacity.retry(wait=tenacity.wait_exponential(multiplier=1.25, min=5, max=30))
     def get_ideogram_image(self, model, prompt, negative_prompt, aspect_ratio, seed, api_url, api_key, style_type, magic_prompt_option,):
         random.seed(seed)
 
