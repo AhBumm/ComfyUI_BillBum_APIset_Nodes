@@ -253,6 +253,90 @@ class BillBum_Modified_LLM_API_Node:
         )
         return (completion.choices[0].message.content,seed,)
 
+class BillBum_Modified_LLM_ForceStream_Mode:
+
+    def __init__(self):
+        pass
+    @classmethod
+    def INPUT_TYPES(s):
+        return {
+            "required": {
+                "prompt": ("STRING", {"defaultInput": True, "multiline": True,}),
+                "seed": ("INT", {
+                     "default": 0, "min": 0, "max": 0xffffffffffffffff
+                }),
+                "model": ("STRING", {
+                    "default": "qwq-32b",
+                }),
+                "api_url": ("STRING", {
+                    "multiline": False,
+                    "default": "https://dashscope.aliyuncs.com/compatible-mode/v1",
+                }),
+                "api_key": ("STRING", {
+                    "multiline": False,
+                    "default": "YOUR_API_KEY_HERE",
+                }),
+                "temperature": ("FLOAT", {
+                    "default": 0.0,
+                    "min": 0.0,
+                    "max": 2.0,
+                    "step": 0.05,
+                }),
+                "enable_thinking": ("BOOLEAN", {
+                    "default": False,
+                }),
+                "system_prompt": ("STRING", {
+                    "multiline": True,
+                })
+            },
+        }
+
+    RETURN_TYPES = ("STRING","INT","STRING","STRING","STRING",)
+    RETURN_NAMES = ("LLM ANSWERS","seed","model","api_url","api_key",)
+    FUNCTION = "get_llm_stream_response"
+    CATEGORY = "BillBum_API"
+
+    @tenacity.retry(wait=tenacity.wait_exponential(multiplier=1.25, min=5, max=30))
+    def get_llm_stream_response(self, prompt, model, api_url, api_key, system_prompt, temperature, enable_thinking, seed):
+
+        random.seed(seed)
+        full_content = ""
+
+        client = OpenAI(
+            api_key=api_key,
+            base_url=api_url
+        )
+
+        if temperature != 0.0:
+            completion = client.chat.completions.create(
+                model=model,
+                temperature=temperature,
+                stream=True,
+                messages=[
+                    {'role':'system', 'content': system_prompt},
+                    {'role': 'user', 'content': prompt}
+                    ],
+                extra_body={'enable_thinking': enable_thinking},
+            )
+        else:
+            completion = client.chat.completions.create(
+                model=model,
+                stream=True,
+                messages=[
+                    {'role':'system', 'content': system_prompt},
+                    {'role': 'user', 'content': prompt}
+                    ],
+                extra_body={'enable_thinking': enable_thinking},
+            )
+
+        for chunk in completion:
+            if chunk.choices and chunk.choices[0].delta.content is not None:
+                content = chunk.choices[0].delta.content
+                full_content += content
+                print(content, end="")
+
+        return (full_content,seed,)
+
 class BillBum_Modified_Structured_LLM_Node:
 
     def __init__(self):

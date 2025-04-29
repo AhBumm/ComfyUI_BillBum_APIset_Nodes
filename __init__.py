@@ -19,6 +19,7 @@ NODE_CLASS_MAPPINGS = {
     "Input_Text": Input_Text,
     "BillBum_Modified_Ideogram_API_Node": BillBum_Modified_Ideogram_API_Node,
     "BillBum_NonSysPrompt_VLM_API_Node": BillBum_NonSysPrompt_VLM_API_Node,
+    "BillBum_Modified_LLM_ForceStream_Mode": BillBum_Modified_LLM_ForceStream_Mode,
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
