@@ -20,6 +20,7 @@ NODE_CLASS_MAPPINGS = {
     "BillBum_Modified_Ideogram_API_Node": BillBum_Modified_Ideogram_API_Node,
     "BillBum_NonSysPrompt_VLM_API_Node": BillBum_NonSysPrompt_VLM_API_Node,
     "BillBum_Modified_LLM_ForceStream_Mode": BillBum_Modified_LLM_ForceStream_Mode,
+    "BillBum_Modified_GPTImage1_API_Node": BillBum_Modified_GPTImage1_API_Node,
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {

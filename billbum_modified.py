@@ -13,6 +13,8 @@ import requests
 import json
 import re
 import tiktoken
+import math
+from comfy.utils import common_upscale
 
 META_PROMPT = """
 Given a task description or existing prompt, produce a detailed system prompt to guide a language model in completing the task effectively.
@@ -74,6 +76,58 @@ def pil2tensor(images: Image.Image | list[Image.Image]) -> torch.Tensor:
         return single_pil2tensor(images)
     else:
         return torch.cat([single_pil2tensor(img) for img in images], dim=0)
+
+def downscale_input(image):
+    samples = image.movedim(-1,1)
+    #downscaling input images to roughly the same size as the outputs
+    total = int(1536 * 1024)
+    scale_by = math.sqrt(total / (samples.shape[3] * samples.shape[2]))
+    if scale_by >= 1:
+        return image
+    width = round(samples.shape[3] * scale_by)
+    height = round(samples.shape[2] * scale_by)
+
+    s = common_upscale(samples, width, height, "lanczos", "disabled")
+    s = s.movedim(1,-1)
+    return s
+
+def validate_and_cast_response(response):
+    # validate raw JSON response
+    data = response.data
+    if not data or len(data) == 0:
+        raise Exception("No images returned from API endpoint")
+
+    # Initialize list to store image tensors
+    image_tensors = []
+
+    # Process each image in the data array
+    for image_data in data:
+        image_url = image_data.url
+        b64_data = image_data.b64_json
+
+        if not image_url and not b64_data:
+            raise Exception("No image was generated in the response")
+
+        if b64_data:
+            img_data = base64.b64decode(b64_data)
+            img = Image.open(io.BytesIO(img_data))
+
+        elif image_url:
+            img_response = requests.get(image_url)
+            if img_response.status_code != 200:
+                raise Exception("Failed to download the image")
+            img = Image.open(io.BytesIO(img_response.content))
+
+        img = img.convert("RGBA")
+
+        # Convert to numpy array, normalize to float32 between 0 and 1
+        img_array = np.array(img).astype(np.float32) / 255.0
+        img_tensor = torch.from_numpy(img_array)
+
+        # Add to list of tensors
+        image_tensors.append(img_tensor)
+
+    return torch.stack(image_tensors, dim=0)
 
 class Text_Concat:
 
@@ -1299,6 +1353,198 @@ class BillBum_Modified_Ideogram_API_Node:
             return (base64_url, seed)
         except (KeyError, IndexError) as e:
             raise Exception(f"Unexpected response format: {e}")
+
+class BillBum_Modified_GPTImage1_API_Node:
+    
+    def __init__(self):
+        pass
+
+    @classmethod
+    def INPUT_TYPES(s):
+        return {
+            "required": {
+                "prompt": ("STRING", {
+                    "multiline": True,
+                    "default": "",
+                    "tooltip": "Text prompt for GPT Image 1",
+                }),
+                "api_url": ("STRING", {
+                    "default": "https://api.openai.com/v1/images/generations",
+                    "tooltip": "Costume API URL",
+                }),
+                "api_key": ("STRING", {
+                    "default": "enter your key here...",
+                    "tooltip": "Costume API key",
+                }),
+                "model": ("STRING", {
+                    "default": "gpt-image-1",
+                    "tooltip": "Model name",
+                }),
+            },
+            "optional": {
+                "seed": ("INT", {
+                    "default": 0,
+                    "min": 0,
+                    "max": 2**31-1,
+                    "step": 1,
+                    "display": "number",
+                    "tooltip": "not implemented yet in backend",
+                }),
+                "quality": ("COMBO", {
+                    "options": ["low","medium","high"],
+                    "default": "low",
+                    "tooltip": "Image quality, affects cost and generation time.",
+                }),
+                "size": ("COMBO", {
+                    "options": ["auto", "1024x1024", "1024x1536", "1536x1024"],
+                    "default": "auto",
+                    "tooltip": "Image size",
+                }),
+                "n": ("INT", {
+                    "default": 1,
+                    "min": 1,
+                    "max": 8,
+                    "step": 1,
+                    "display": "number",
+                    "tooltip": "How many images to generate",
+                }),
+                "image": ("IMAGE", {
+                    "default": None,
+                    "tooltip": "Optional reference image for image editing.",
+                }),
+                "mask": ("MASK", {
+                    "default": None,
+                    "tooltip": "Optional reference image for image editing.",
+                }),
+            }
+        }
+
+    RETURN_TYPES = ("IMAGE","INT")
+    RETURN_NAMES = ("image","seed")
+    FUNCTION = "api_call_image1"
+    CATEGORY = "BillBum_API"
+
+    def api_call_image1(self, prompt, api_url, api_key, model, seed=0, quality="low", image=None, mask=None, n=1, size="1024x1024"):
+        if image is not None:
+            batch_size = image.shape[0]
+            img_binaries = []
+            mask_binary = None
+            for i in range(batch_size):
+                single_image = image[i:i+1]
+                scaled_image = downscale_input(single_image).squeeze()
+
+                image_np = (scaled_image.numpy() * 255).astype(np.uint8)
+                img = Image.fromarray(image_np)
+                img_byte_arr = io.BytesIO()
+                img.save(img_byte_arr, format='PNG')
+                img_byte_arr.seek(0)
+                img_binary = img_byte_arr
+                img_binary.name = f"image_{i}.png"
+                img_binaries.append(img_binary)
+
+            client = OpenAI(
+                base_url=api_url,
+                api_key=api_key
+            )
+
+            if batch_size == 1:
+                if mask is not None:
+                    if image.shape[0] != 1:
+                        raise Exception("Cannot use a mask with multiple image")
+                    if image is None:
+                        raise Exception("Cannot use a mask without an input image")
+                    if mask.shape[1:] != image.shape[1:-1]:
+                        raise Exception("Mask and Image must be the same size")
+                    batch, height, width = mask.shape
+                    rgba_mask = torch.zeros(height, width, 4, device="cpu")
+                    rgba_mask[:,:,3] = (1-mask.squeeze().cpu())
+
+                    scaled_mask = downscale_input(rgba_mask.unsqueeze(0)).squeeze()
+
+                    mask_np = (scaled_mask.numpy() * 255).astype(np.uint8)
+                    mask_img = Image.fromarray(mask_np)
+                    mask_img_byte_arr = io.BytesIO()
+                    mask_img.save(mask_img_byte_arr, format='PNG')
+                    mask_img_byte_arr.seek(0)
+                    mask_binary = mask_img_byte_arr
+                    mask_binary.name = "mask.png"
+
+                    result = client.images.edit(
+                        model=model,
+                        image=img_binaries[0],
+                        mask=mask_binary,
+                        prompt=prompt,
+                        quality=quality,
+                        n=n,
+                        size=size,
+                    )
+
+                else:
+                    result = client.images.edit(
+                        model=model,
+                        image=img_binaries[0],
+                        prompt=prompt,
+                        quality=quality,
+                        n=n,
+                        size=size,
+                    )
+            else:
+                if mask is not None:
+                    if image.shape[0] != 1:
+                        raise Exception("Cannot use a mask with multiple image")
+                    if image is None:
+                        raise Exception("Cannot use a mask without an input image")
+                    if mask.shape[1:] != image.shape[1:-1]:
+                        raise Exception("Mask and Image must be the same size")
+                    batch, height, width = mask.shape
+                    rgba_mask = torch.zeros(height, width, 4, device="cpu")
+                    rgba_mask[:,:,3] = (1-mask.squeeze().cpu())
+
+                    scaled_mask = downscale_input(rgba_mask.unsqueeze(0)).squeeze()
+
+                    mask_np = (scaled_mask.numpy() * 255).astype(np.uint8)
+                    mask_img = Image.fromarray(mask_np)
+                    mask_img_byte_arr = io.BytesIO()
+                    mask_img.save(mask_img_byte_arr, format='PNG')
+                    mask_img_byte_arr.seek(0)
+                    mask_binary = mask_img_byte_arr
+                    mask_binary.name = "mask.png"
+
+                    result = client.images.edit(
+                        model=model,
+                        image=img_binaries,
+                        mask=mask_binary,
+                        prompt=prompt,
+                        quality=quality,
+                        n=n,
+                        size=size,
+                    )
+
+                else:
+                    result = client.images.edit(
+                        model=model,
+                        image=img_binaries,
+                        prompt=prompt,
+                        quality=quality,
+                        n=n,
+                        size=size,
+                    )
+
+        else:
+            client = OpenAI(
+                base_url=api_url,
+                api_key=api_key
+            )
+            result = client.images.generate(
+                model=model,
+                prompt=prompt,
+                quality=quality,
+                n=n,
+                size=size,
+            )
+
+        img_tensor = validate_and_cast_response(result)
+        return (img_tensor,seed)
 
 # Ensure these mappings are correctly integrated into your ComfyUI environment
 NODE_CLASS_MAPPINGS = {
