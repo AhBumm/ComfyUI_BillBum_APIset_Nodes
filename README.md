@@ -12,6 +12,11 @@ including DALL-E, OpenAI's LLMs, other LLMs api platform, also other image gener
 - **little tools**: base64 url to base64 data, base64 url to IMAGE, IMAGE to base64 url, regular llm text to word and "," only. etc.
 
 ## Update
+- **Add gpt-image-1 image genarate api node**
+  
+!!!need to upgrade the openai library
+
+- **Add force stream llm api node, for support qwen3 and qwq models**
 - **remove think...think for deepseek r1 via RegText_Node**
 - **Add use_jailbreak option for VisionLM api node**
   If your caption task rejected due to nsfw content, you can try to take on use_jailbreak.
