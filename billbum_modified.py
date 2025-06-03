@@ -967,7 +967,8 @@ class BillBum_Modified_Flux_API_Node_imgInput:
                 "image_prompt": ("IMAGE",),
                 "image_strength": ("FLOAT", {"default": 0.75, "min": 0.0, "max": 1.0, "step": 0.05,}),
                 "aspect_ratio": ("COMBO", {
-                    "options": ["1:1", "21:9", "16:9", "3:2", "4:3", "5:4", "4:5", "3:4", "2:3", "9:16", "9:21"]
+                    "options": ["1:1", "21:9", "16:9", "3:2", "4:3", "5:4", "4:5", "3:4", "2:3", "9:16", "9:21", "match_input_image"],
+                    "tooltip": "match_input_image only support flux-kontext-pro/max"
                     })
             },
         }
@@ -1017,6 +1018,25 @@ class BillBum_Modified_Flux_API_Node_imgInput:
                         "image_strength": image_strength,
                         "width": width,
                         "height": height,
+                        "response_format": "b64_json",
+                        "output_format": "webp"
+                    }
+            elif model.startswith("flux-kontext"):
+                if image_prompt == None:
+                    data = {
+                        "model": model,
+                        "prompt": prompt,
+                        "aspect_ratio": aspect_ratio,
+                        "response_format": "b64_json",
+                        "output_format": "webp"
+                    }
+                else:
+                    b64_url = get_b64_url(image_prompt)
+                    data = {
+                        "model": model,
+                        "prompt": prompt,
+                        "input_image": b64_url,
+                        "aspect_ratio": aspect_ratio,
                         "response_format": "b64_json",
                         "output_format": "webp"
                     }
