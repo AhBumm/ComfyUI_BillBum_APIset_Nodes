@@ -943,6 +943,114 @@ class BillBum_Modified_Flux_API_Node:
         except (KeyError, IndexError) as e:
             raise Exception(f"Unexpected response format: {e}")
 
+class BillBum_Modified_Flux_API_Node_imgInput:
+
+    def __init__(self):
+        pass
+
+    @classmethod
+    def INPUT_TYPES(s):
+        return {
+            "required": {
+                "prompt": ("STRING", {"defaultInput": True,}),
+                "model": ("STRING", {
+                    "default": "flux-1.1-pro",
+                    "tooltip": "flux-1.1-pro need width and height, flux-1.1-pro-ultra required aspect_ratio"
+                    }),
+                "width": ("INT", {"default": 1024, "min": 256, "max": 1440, "step": 32, "display": "number"}),
+                "height": ("INT", {"default": 1024, "min": 256, "max": 1440, "step": 32, "display": "number"}),
+                "seed": ("INT", {"default": 0, "min": 0, "max": 10000}),
+                "api_url": ("STRING", {"multiline": False, "default": "https://api.hyprlab.io/v1/images/generations"}),
+                "api_key": ("STRING", {"default": "YOUR_API_KEY_HERE"}),
+            },
+            "optional": {
+                "image_prompt": ("IMAGE",),
+                "image_strength": ("FLOAT", {"default": 0.75, "min": 0.0, "max": 1.0, "step": 0.05,}),
+                "aspect_ratio": ("COMBO", {
+                    "options": ["1:1", "21:9", "16:9", "3:2", "4:3", "5:4", "4:5", "3:4", "2:3", "9:16", "9:21"]
+                    })
+            },
+        }
+
+    RETURN_TYPES = ("STRING", "INT",)
+    RETURN_NAMES = ("base64_url", "seed",)
+    FUNCTION = "get_fluxpro_image"
+    CATEGORY = "BillBum_API"
+
+    @tenacity.retry(wait=tenacity.wait_exponential(multiplier=1.25, min=5, max=30), stop=tenacity.stop_after_attempt(3))
+    def get_fluxpro_image(self, prompt, model, aspect_ratio, width, height, image_strength, seed, api_url, api_key, image_prompt = None):
+        def get_b64_url(image_prompt):
+            with torch.no_grad():
+                pil_image = ToPILImage()(image_prompt.permute([0, 3, 1, 2])[0]).convert("RGB")
+            image_path = tempfile.NamedTemporaryFile(suffix=".png").name
+            pil_image.save(image_path)
+            with open(image_path, "rb") as image_file:
+                base64_image = base64.b64encode(image_file.read()).decode('utf-8')
+            b64_url = f"data:image/png;base64,{base64_image}"
+            os.remove(image_path)
+            return b64_url
+        try:
+            api_key = api_key
+            api_url = api_url
+
+            headers = {
+                "Content-Type": "application/json",
+                "Authorization": f"Bearer {api_key}"
+            }
+
+            if model == "flux-1.1-pro":
+                if image_prompt == None:
+                    data = {
+                        "model": model,
+                        "prompt": prompt,
+                        "width": width,
+                        "height": height,
+                        "response_format": "b64_json",
+                        "output_format": "webp"
+                    }
+                else:
+                    b64_url = get_b64_url(image_prompt)
+                    data = {
+                        "model": model,
+                        "prompt": prompt,
+                        "image_prompt": b64_url,
+                        "image_strength": image_strength,
+                        "width": width,
+                        "height": height,
+                        "response_format": "b64_json",
+                        "output_format": "webp"
+                    }
+            else:
+                if image_prompt == None:
+                    data = {
+                        "model": model,
+                        "prompt": prompt,
+                        "aspect_ratio": aspect_ratio,
+                        "response_format": "b64_json",
+                        "output_format": "webp"
+                    }
+                else:
+                    b64_url = get_b64_url(image_prompt)
+                    data = {
+                        "model": model,
+                        "prompt": prompt,
+                        "image_prompt": b64_url,
+                        "image_strength": image_strength,
+                        "aspect_ratio": aspect_ratio,
+                        "response_format": "b64_json",
+                        "output_format": "webp"
+                    }
+
+            response = requests.post(api_url, headers=headers, json=data)
+            print(f"HTTP status code: {response.status_code}")
+            response.raise_for_status()
+            response_json = response.json()
+            b64_string = response_json['data'][0]['b64_json']
+            base64_url = f"data:image/webp;base64,{b64_string}"
+            return (base64_url, seed)
+        except (KeyError, IndexError) as e:
+            raise Exception(f"Unexpected response format: {e}")
+
 class BillBum_Modified_Recraft_API_Node:
 
     def __init__(self):

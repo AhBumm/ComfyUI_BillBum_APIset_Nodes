@@ -21,6 +21,7 @@ NODE_CLASS_MAPPINGS = {
     "BillBum_NonSysPrompt_VLM_API_Node": BillBum_NonSysPrompt_VLM_API_Node,
     "BillBum_Modified_LLM_ForceStream_Mode": BillBum_Modified_LLM_ForceStream_Mode,
     "BillBum_Modified_GPTImage1_API_Node": BillBum_Modified_GPTImage1_API_Node,
+    "BillBum_Modified_Flux_API_with_imgInput": BillBum_Modified_Flux_API_Node_imgInput,
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
