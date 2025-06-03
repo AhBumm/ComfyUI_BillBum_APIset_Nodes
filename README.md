@@ -14,7 +14,7 @@ including DALL-E, OpenAI's LLMs, other LLMs api platform, also other image gener
 ## Update
 - **Add flux with img input genarate api node**
 
-  
+  support kontext model !!!
 - **Add gpt-image-1 image genarate api node**
 
   support multi img input by use a multi img batch node
