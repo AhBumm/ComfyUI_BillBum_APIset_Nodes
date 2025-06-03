@@ -12,8 +12,14 @@ including DALL-E, OpenAI's LLMs, other LLMs api platform, also other image gener
 - **little tools**: base64 url to base64 data, base64 url to IMAGE, IMAGE to base64 url, regular llm text to word and "," only. etc.
 
 ## Update
-- **Add gpt-image-1 image genarate api node**
+- **Add flux with img input genarate api node**
+
   
+- **Add gpt-image-1 image genarate api node**
+
+  support multi img input by use a multi img batch node
+  ![image](https://github.com/user-attachments/assets/222bbcc6-cbcd-4e76-8399-459942ee737a)
+
 !!!need to upgrade the openai library
 
 - **Add force stream llm api node, for support qwen3 and qwq models**
