@@ -1,12 +1,12 @@
 [project]
-name = "comfyui_billbum_nodes"
-description = "API call node for Third-party platforms both official and local. Support VLMs LLMs Dalle3 Flux-Pro etc(new Support gpt-image-1 api!!!). And some little tools: img to b64 url, b64 url to img, b64 url to b64 data, reg text to word and ',' only, etc."
-version = "1.1.2"
+name = "comfyui_billbum_api_nodes"
+description = "API call node for Third-party platforms both official and local. Support VLMs LLMs Dalle3 Flux-Pro(Support kontext now!!) etc(new Support gpt-image-1!!). And some little tools: img to b64 url, b64 url to img, b64 url to b64 data, reg text to word and ',' only, etc."
+version = "1.1.3"
 license = {file = "LICENSE"}
 dependencies = ["tenacity", "openai", "pillow", "requests", "torch", "numpy", "tiktoken"]
 
 [project.urls]
-Repository = "https://github.com/AhBumm/ComfyUI_BillBum_Nodes"
+Repository = "https://github.com/AhBumm/ComfyUI_BillBum_APIset_Nodes"
 #  Used by Comfy Registry https://comfyregistry.org
 
 [tool.comfy]
