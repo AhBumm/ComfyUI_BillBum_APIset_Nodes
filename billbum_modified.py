@@ -240,7 +240,10 @@ class BillBum_Modified_Dalle_API_Node:
 
         b64_data = response.data[0].b64_json
         revised_prompt = response.data[0].revised_prompt
-        b64_url = f"data:image/png;base64,{b64_data}"
+        if not b64_data.startswith(("data:image/png;base64,", "data:image/jpeg;base64,", "data:image/webp;base64,")):
+            b64_url = f"data:image/png;base64,{b64_data}"
+        else:
+            b64_url = b64_data
         real_prompt = f"{revised_prompt}"
         return (b64_url,real_prompt)
 
@@ -1497,7 +1500,7 @@ class BillBum_Modified_GPTImage1_API_Node:
                     "tooltip": "Text prompt for GPT Image 1",
                 }),
                 "api_url": ("STRING", {
-                    "default": "https://api.openai.com/v1/images/generations",
+                    "default": "https://api.openai.com/v1",
                     "tooltip": "Costume API URL",
                 }),
                 "api_key": ("STRING", {
