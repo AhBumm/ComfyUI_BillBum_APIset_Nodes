@@ -1007,8 +1007,7 @@ class BillBum_Modified_Flux_API_Node_imgInput:
                     data = {
                         "model": model,
                         "prompt": prompt,
-                        "width": width,
-                        "height": height,
+                        "aspect_ratio": aspect_ratio,
                         "response_format": "b64_json",
                         "output_format": "webp"
                     }
@@ -1019,8 +1018,7 @@ class BillBum_Modified_Flux_API_Node_imgInput:
                         "prompt": prompt,
                         "image_prompt": b64_url,
                         "image_strength": image_strength,
-                        "width": width,
-                        "height": height,
+                        "aspect_ratio": aspect_ratio,
                         "response_format": "b64_json",
                         "output_format": "webp"
                     }
