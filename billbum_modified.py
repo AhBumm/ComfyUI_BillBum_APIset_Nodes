@@ -149,7 +149,7 @@ class Text_Concat:
     CATEGORY = "string processing"
 
     def text_concat(self, text_1, text_2):
-        text = f"{text_1} {text_2}"
+        text = f"{text_1}{text_2}"
         return (text,)
 
 class Input_Text:
@@ -264,7 +264,7 @@ class BillBum_Modified_LLM_API_Node:
                 }),
                 "api_url": ("STRING", {
                     "multiline": False,
-                    "default": "https://api.hyprlab.io/v2",
+                    "default": "https://api.hyprlab.io/v1",
                 }),
                 "api_key": ("STRING", {
                     "multiline": False,
@@ -393,62 +393,6 @@ class BillBum_Modified_LLM_ForceStream_Mode:
                 print(content, end="")
 
         return (full_content,seed,)
-
-class BillBum_Modified_Structured_LLM_Node:
-
-    def __init__(self):
-        pass
-
-    @classmethod
-    def INPUT_TYPES(cls):
-        return {
-            "required": {
-                "prompt": ("STRING", {"defaultInput": True},),
-                "model": ("STRING", {
-                    "default": "gpt-4o-mini",
-                }),
-                "api_url": ("STRING", {
-                    "multiline": False,
-                    "default": "https://api.hyprlab.io/v1",
-                }),
-                "api_key": ("STRING", {
-                    "multiline": False,
-                    "default": "YOUR_API_KEY_HERE",
-                }),
-                "system_prompt": ("STRING", {"defaultInput": True},),
-                "output_format": ("STRING", {"defaultInput": True},),
-            },
-        }
-
-    RETURN_TYPES = ("STRING",)
-    RETURN_NAMES = ("structured_str",)
-    FUNCTION = "get_llm_structured_response"
-    CATEGORY = "BillBum_API"
-
-    @tenacity.retry(wait=tenacity.wait_exponential(multiplier=1.25, min=5, max=30))
-    def get_llm_structured_response(self, prompt, model, api_url, api_key, system_prompt, output_format, seed):
-        
-        META_SCHEMA = json.loads(output_format)
-
-        random.seed(seed)
-
-        client = OpenAI(
-            api_key=api_key,
-            base_url=api_url
-        )
-
-        completion = client.chat.completions.create(
-            model=model,
-            response_format={"type": "json_schema", "json_schema": META_SCHEMA},
-            messages=[
-                {'role': 'system', 'content': system_prompt},
-                {'role': 'user', 'content': "Description:\n" + prompt}
-            ]
-        )
-
-        response_dict = json.loads(completion.choices[0].message.content)
-        data = response_dict.get("data", [])
-        return (data,)
 
 class BillBum_Modified_VisionLM_API_Node:
 
@@ -762,7 +706,7 @@ Are you in agreement with these instructions? Please respond with "Ok!"
             )
         return (completion.choices[0].message.content, seed, model, api_url, api_key)
 
-class BillBum_Modified_img2url_Node:
+class BillBum_Modified_img2b64url_Node:
     """
     A ComfyUI node to convert an image file to a base64 encoded string.
     """
@@ -889,62 +833,6 @@ class BillBum_Modified_SD3_API_Node:
         if not image_url:
             raise Exception(f"Image URL not found in response: {response_json}")
         return (image_url,)
-
-class BillBum_Modified_Flux_API_Node:
-
-    def __init__(self):
-        pass
-
-    @classmethod
-    def INPUT_TYPES(s):
-        return {
-            "required": {
-                "model": ("STRING", {"default": "flux-1.1-pro"}),
-                "prompt": ("STRING", {"defaultInput": True}),
-                "width": ("INT", {"default": 1024, "min": 256, "max": 1440, "step": 32, "display": "number"}),
-                "height": ("INT", {"default": 1024, "min": 256, "max": 1440, "step": 32, "display": "number"}),
-                "steps": ("INT", {"default": 20, "min": 1, "max": 50, "step": 1, "display": "number"}),
-                "seed": ("INT", {"default": 0, "min": 0, "max": 10000}),
-                "api_url": ("STRING", {"multiline": False, "default": "https://api.hyprlab.io/v1/images/generations"}),
-                "api_key": ("STRING", {"default": "YOUR_API_KEY_HERE"}),
-            },
-        }
-
-    RETURN_TYPES = ("STRING", "INT",)
-    RETURN_NAMES = ("base64_url", "seed",)
-    FUNCTION = "get_t2i_image"
-    CATEGORY = "BillBum_API"
-
-    @tenacity.retry(wait=tenacity.wait_exponential(multiplier=1.25, min=5, max=30))
-    def get_t2i_image(self, model, prompt, width, height, steps, api_url, seed, api_key):
-        random.seed(seed)
-
-        headers = {
-            "Content-Type": "application/json",
-            "Authorization": f"Bearer {api_key}"
-        }
-
-        data = {
-            "model": model,
-            "prompt": prompt,
-            "steps": steps,
-            "height": height,
-            "width": width,
-            "response_format": "b64_json",
-            "output_format": "webp"
-        }
-
-        response = requests.post(api_url, headers=headers, json=data)
-        print(f"HTTP status code: {response.status_code}")
-        response.raise_for_status()
-
-        response_json = response.json()
-        try:
-            b64_string = response_json['data'][0]['b64_json']
-            base64_url = f"data:image/webp;base64,{b64_string}"
-            return (base64_url, seed)
-        except (KeyError, IndexError) as e:
-            raise Exception(f"Unexpected response format: {e}")
 
 class BillBum_Modified_Flux_API_Node_imgInput:
 
@@ -1223,82 +1111,6 @@ class BillBum_Modified_Base64_Url2Img_Node:
         image_data = base64.b64decode(base64_data)
         image = Image.open(io.BytesIO(image_data))
         return (pil2tensor(image),)
-
-class BillBum_Modified_ImageSplit_Node:
-    @classmethod
-    def INPUT_TYPES(s):
-        return {
-            "required": {
-                "image": ("IMAGE",),
-            }
-        }
-
-    RETURN_TYPES = ("IMAGE",)
-    FUNCTION = "split_image"
-    CATEGORY = "BillBum Image Processing"
-
-    def split_image(self, image):
-        # Convert tensor to PIL image if necessary
-        img_pil = Image.fromarray((image.squeeze(0).numpy() * 255).astype('uint8')) if isinstance(image, torch.Tensor) else image
-        
-        # Handle different image sizes
-        if img_pil.size == (1024, 1024):
-            # If the image is 1024x1024, return it as is
-            return (image,)
-        elif img_pil.size == (2048, 1024):
-            # If the image is 2048x1024, split it into two 1024x1024 images
-            box_coordinates = [(0, 0, 1024, 1024), (1024, 0, 2048, 1024)]
-        elif img_pil.size == (2048, 2048):
-            # If the image is 2048x2048, split it into four 1024x1024 images
-            box_coordinates = [(0, 0, 1024, 1024), (1024, 0, 2048, 1024), (0, 1024, 1024, 2048), (1024, 1024, 2048, 2048)]
-        else:
-            raise ValueError("Input image must be either 1024x1024, 2048x1024, or 2048x2048.")
-        
-        # Define tolerance for detecting near-black images
-        tolerance = 0.08  # 8% tolerance
-
-        # Crop and convert the sub-images to tensors, while filtering out near-black images
-        sub_images = []
-        for box in box_coordinates:
-            cropped_img = img_pil.crop(box)
-            np_img = np.array(cropped_img).astype(np.float32) / 255.0
-            
-            # Check if the image is not near-black
-            if not np.all(np_img <= tolerance):
-                sub_images.append(torch.from_numpy(np_img))
-
-        # If all sub-images are near-black, return an empty tensor
-        if not sub_images:
-            raise ValueError("All cropped sub-images are near-black.")
-
-        # Stack valid sub-images to create a batch tensor
-        batch_tensor = torch.stack(sub_images)
-
-        return (batch_tensor,)
-    
-class BillBum_Modified_Base64_Url2Data_Node:
-    def __init__(self):
-        pass
-
-    @classmethod
-    def INPUT_TYPES(s):
-        return {
-            "required": {
-                "base64_url": ("STRING", {"defaultInput": True},),
-            },
-        }
-
-    RETURN_TYPES = ("STRING",)
-    FUNCTION = "convert"
-    CATEGORY = "BillBum String Processing"
-
-    def convert(self, base64_url_string):
-        try:
-            base64_data_string = base64_url_string.split(",", 1)[1]
-        except IndexError:
-            raise ValueError("Invalid base64 URL string format.")
-        
-        return (base64_data_string,)
 
 class BillBum_Modified_RegText_Node:
 
