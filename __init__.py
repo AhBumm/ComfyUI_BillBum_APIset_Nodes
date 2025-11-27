@@ -6,6 +6,7 @@ from .nodes4tuzi import (
     LoadVideoFromUrlVHS,
     LoadVideoFromUrlComfyIO,
     )
+from .nodes4hypr import HyprLab_Image_API_Node
 
 # Exporting the node classes for ComfyUI to discover
 NODE_CLASS_MAPPINGS = {
@@ -31,6 +32,7 @@ NODE_CLASS_MAPPINGS = {
     "reg_tuzi_chat_response": RegTuziChatResponse,
     "load_video_from_url": LoadVideoFromUrlVHS,
     "load_video_from_url_comfy_core": LoadVideoFromUrlComfyIO,
+    "hyprlab_image_api_node": HyprLab_Image_API_Node,
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
@@ -56,4 +58,5 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "BillBum_Modified_LLM_ForceStream_Mode": "LLM StreamResponse Node (Old)",
     "BillBum_Modified_GPTImage1_API_Node": "Custom GPTImage1 API Node",
     "BillBum_Modified_Flux_API_with_imgInput": "Custom Flux API Node",
+    "hyprlab_image_api_node": "HyprLab ImageGen API Node",
 }

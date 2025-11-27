@@ -161,7 +161,7 @@ class Input_Text:
     def INPUT_TYPES(s):
         return {
             "required": {
-                "text": ("STRING", {"multiline": True},),
+                "text": ("STRING", {"dynamicPrompts": True, "multiline": True},),
             },
         }
     
