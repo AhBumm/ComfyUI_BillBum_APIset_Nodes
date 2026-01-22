@@ -7,6 +7,7 @@ from .nodes4tuzi import (
     LoadVideoFromUrlComfyIO,
     )
 from .nodes4hypr import HyprLab_Image_API_Node
+from .nodes4doubao import seedance_api_node, seedream_api_node
 
 # Exporting the node classes for ComfyUI to discover
 NODE_CLASS_MAPPINGS = {
@@ -33,6 +34,8 @@ NODE_CLASS_MAPPINGS = {
     "load_video_from_url": LoadVideoFromUrlVHS,
     "load_video_from_url_comfy_core": LoadVideoFromUrlComfyIO,
     "hyprlab_image_api_node": HyprLab_Image_API_Node,
+    "doubao_seedance_api_node": seedance_api_node,
+    "doubao_seedream_api_node": seedream_api_node,
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
@@ -59,4 +62,6 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "BillBum_Modified_GPTImage1_API_Node": "Custom GPTImage1 API Node",
     "BillBum_Modified_Flux_API_with_imgInput": "Custom Flux API Node",
     "hyprlab_image_api_node": "HyprLab ImageGen API Node",
+    "doubao_seedance_api_node": "Doubao Seedance VideoGen API Node",
+    "doubao_seedream_api_node": "Doubao Seedream ImageGen API Node",
 }

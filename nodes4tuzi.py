@@ -94,7 +94,7 @@ class BillBum_Modified_StreamResponse_LLM_API:
             encoded_images.append(encoded)
         return encoded_images
 
-    @tenacity.retry(wait=tenacity.wait_exponential(multiplier=1.25, min=5, max=30), stop=tenacity.stop_after_attempt(3))
+    @tenacity.retry(wait=tenacity.wait_exponential(multiplier=1.25, min=5, max=30), stop=tenacity.stop_after_attempt(3), reraise=True)
     def get_llm_stream_response(
         self,
         prompt,
@@ -145,16 +145,21 @@ class BillBum_Modified_StreamResponse_LLM_API:
         if extra_body:
             request_kwargs["extra_body"] = extra_body
 
-        completion = client.chat.completions.create(**request_kwargs)
+        try:
+            completion = client.chat.completions.create(**request_kwargs)
 
-        full_content = ""
-        for chunk in completion:
-            if chunk.choices and chunk.choices[0].delta.content is not None:
-                delta = chunk.choices[0].delta.content
-                full_content += delta
-                print(delta, end="")
-
-        return (full_content,)
+            full_content = ""
+            for chunk in completion:
+                if chunk.choices and chunk.choices[0].delta.content is not None:
+                    delta = chunk.choices[0].delta.content
+                    full_content += delta
+                    # print(delta, end="")  # For debugging stream output
+            return (full_content,)
+        
+        except Exception as e:
+            print(f"LLM API Error: {type(e).__name__} - {e}")
+            # Re-raise the exception to allow tenacity to handle retries
+            raise
 
 
 class Url2Image:
