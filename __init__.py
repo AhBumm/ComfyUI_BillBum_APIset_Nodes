@@ -38,7 +38,7 @@ NODE_CLASS_MAPPINGS = {
 NODE_DISPLAY_NAME_MAPPINGS = {
     "billbum_modified_stream_response_llm_api": "API Node for Stream Response LLMs",
     "url2image": "Load Image from URL (BillBum)",
-    "reg_tuzi_chat_response": "Tuzi Chat Response Parser",
+    "reg_tuzi_chat_response": "UrlExtract from Chat Response",
     "load_video_from_url": "Load Video From URL (VHS Compatible)",
     "load_video_from_url_comfy_core": "Load&Save Video From URL (Comfy Core)",
     "BillBum_Modified_Dalle_API_Node": "Dall-E Custom API Node",

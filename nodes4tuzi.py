@@ -19,6 +19,7 @@ import shutil
 from comfy_api.latest import ui
 from comfy_api.latest import io as comfyio
 from comfy_api.input_impl import VideoFromFile
+from urlextract import URLExtract
 
 
 ## ======== Utils Functions ========
@@ -486,50 +487,76 @@ class RegTuziChatResponse:
             out_str = response
         
         elif content_type == "image":
-            image_urls = []
-            markdown_urls = re.findall(
-                r'!\[[^\]]*\]\((https?://[^\s\)]+)\)',
+            all_urls = []
+            image_extensions = ['.jpg', '.jpeg', '.png', '.webp', '.gif', '.bmp', '.tif', '.tiff']
+            
+            # 1. Use urlextract for robust http/https URL extraction
+            try:
+                extractor = URLExtract()
+                http_urls = extractor.find_urls(response)
+                for url in http_urls:
+                    path = urlparse(url).path
+                    if any(path.lower().endswith(ext) for ext in image_extensions):
+                        all_urls.append(url)
+            except Exception as e:
+                print(f"urlextract failed for image: {e}. Falling back to regex.")
+                # Fallback to regex if urlextract fails
+                regex_http_urls = re.findall(
+                    r'(https?://[^\s"\'<>)]+\.(?:' + '|'.join(ext.strip('.') for ext in image_extensions) + r')(?:\?[^\s"\'<>,)]*)?)',
+                    response,
+                    flags=re.IGNORECASE,
+                )
+                all_urls.extend(regex_http_urls)
+
+            # 2. Always use regex for base64 data URIs
+            base64_urls = re.findall(
+                r'(data:image/[^;]+;base64,[^\s\)]+)',
                 response,
                 flags=re.IGNORECASE,
             )
-            image_urls.extend(markdown_urls)
+            all_urls.extend(base64_urls)
 
-            file_urls = re.findall(
-                r'(https?://[^\s\)\]]+\.(?:jpg|jpeg|png|webp|gif|bmp|tif|tiff))',
-                response,
-                flags=re.IGNORECASE,
-            )
-            for url in file_urls:
-                if url not in image_urls:
-                    image_urls.append(url)
-
+            # 3. Deduplicate URLs while preserving order
             unique_urls = []
-            seen_names = set()
-            for url in image_urls:
-                filename = os.path.basename(urlparse(url).path)
-                if not filename:
-                    filename = url
-                if filename.lower() in seen_names:
-                    continue
-                seen_names.add(filename.lower())
-                unique_urls.append(url)
+            seen = set()
+            for url in all_urls:
+                if url not in seen:
+                    unique_urls.append(url)
+                    seen.add(url)
 
             out_str = ",".join(unique_urls)
 
         elif content_type == "video":
-            marker = "[⏬ 下载视频]("
-            out_str = ""
-            start = response.find(marker)
-            if start != -1:
-                start += len(marker)
-                end = response.find(")", start)
-                if end != -1:
-                    out_str = response[start:end]
-            # === Fallback to find .mp4 URLs in response ===
-            if not out_str:
-                mp4_urls = re.findall(r"(https?://[^\s\)\]]+\.mp4)", response, flags=re.IGNORECASE)
-                if mp4_urls:
-                    out_str = mp4_urls[-1]
-
+            video_urls = []
+            video_extensions = ['.mp4', '.webm', '.mov', '.mkv', '.avi', '.flv']
+            
+            # 1. Use urlextract for robust video URL extraction
+            try:
+                extractor = URLExtract()
+                http_urls = extractor.find_urls(response)
+                for url in http_urls:
+                    path = urlparse(url).path
+                    if any(path.lower().endswith(ext) for ext in video_extensions):
+                        video_urls.append(url)
+            except Exception as e:
+                print(f"urlextract failed for video: {e}. Falling back to regex.")
+                # Fallback to regex if urlextract fails
+                regex_video_urls = re.findall(
+                    r'(https?://[^\s"\'<>)]+\.(?:' + '|'.join(ext.strip('.') for ext in video_extensions) + r')(?:\?[^\s"\'<>,)]*)?)',
+                    response,
+                    flags=re.IGNORECASE
+                )
+                video_urls.extend(regex_video_urls)
+            
+            # 2. Deduplicate and get the last URL
+            unique_urls = []
+            seen = set()
+            for url in video_urls:
+                if url not in seen:
+                    unique_urls.append(url)
+                    seen.add(url)
+            
+            out_str = unique_urls[-1] if unique_urls else ""
+            
         return (out_str,)
     

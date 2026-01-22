@@ -2,6 +2,6 @@ tenacity
 openai
 pillow
 requests
-torch
 numpy
 tiktoken
+urlextract
