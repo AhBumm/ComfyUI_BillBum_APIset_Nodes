@@ -42,7 +42,7 @@ class seedance_api_node:
                 "api_key": ("STRING", {"default": "Input_your_API_key_here..."}),
                 "resolution": (["480p", "720p", "1080p"], {"default":"480p"}),
                 "ratio": (["16:9", "4:3", "1:1", "3:4", "9:16", "21:9", "adaptive"], {"default":"adaptive"}),
-                "duration": ("INT", {"default":5, "min":1, "max":12, "step":1}),
+                "duration": ("INT", {"default":5, "min":2, "max":12, "step":1}),
                 "camerafixed": (["true", "false"], {"default":"false"}),
                 "watermark": (["true", "false"], {"default":"false"})
             },
@@ -120,17 +120,16 @@ class seedance_api_node:
             "camera_fixed": True if camerafixed == "true" else False,
             "watermark": True if watermark == "true" else False
         }
-
-        # 检查是否为文生视频 (T2V) 模式
-        is_t2v = all(item.get("type") == "text" for item in content)
         
-        # 针对 1.5-pro 系列模型，经过测试传参 duration（无论在 body 还是 prompt 中）均会导致 400 错误
-        # 官方 1.5 模型目前可能为固定时长，故直接忽略该参数以确保调用成功
         if "doubao-seedance-1-5-pro" in model:
             data["generate_audio"] = True
-            # 不发送 duration 参数
+            data["duration"] = duration
+            if duration < 4:
+                data["duration"] = 4
+            if "-no-audio" in model:
+                data["generate_audio"] = False
+                data["model"] = model.replace("-no-audio", "")
         else:
-            # 1.0 等旧版模型仍需发送 duration
             data["duration"] = duration
             
         if seed != -1:
