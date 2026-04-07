@@ -9,6 +9,10 @@ import json
 import tenacity
 import math
 from comfy.utils import common_upscale
+import os
+import uuid
+import folder_paths
+from comfy_api.input_impl import VideoFromFile
 
 
 ## DataType Conversion Functions
@@ -324,3 +328,276 @@ class seedream_api_node:
 
         return (batch, pretty)
 
+
+class seedance2_api_node:
+
+    def __init__(self):
+        pass
+
+    @classmethod
+    def INPUT_TYPES(s):
+        return {
+            "required": {
+                "model": ("STRING", {"default": "doubao-seedance-2-0-fast-260128"}),
+                "prompt": ("STRING", {"forceInput": True}),
+                "seed": ("INT", {"default": -1, "min": -1, "max": 0xffffffff}),
+                "api_url": ("STRING", {"default": "https://ark.cn-beijing.volces.com/api/v3/contents/generations/tasks"}),
+                "api_key": ("STRING", {"default": "Input_your_API_key_here..."}),
+                "resolution": (["480p", "720p"], {"default": "480p"}),
+                "ratio": (["16:9", "4:3", "1:1", "3:4", "9:16", "21:9", "adaptive"], {"default": "adaptive"}),
+                "duration": ("INT", {"default": 5, "min": -1, "max": 15, "step": 1}),
+                "generate_audio": (["true", "false"], {"default": "true"}),
+                "watermark": (["true", "false"], {"default": "false"}),
+                "web_search": (["true", "false"], {"default": "false"}),
+                "return_last_frame": (["true", "false"], {"default": "false"}),
+            },
+            "optional": {
+                "first_frame": ("IMAGE",),
+                "last_frame": ("IMAGE",),
+                "reference_images": ("IMAGE",),
+                "reference_video_url": ("STRING", {"default": "", "multiline": False, "forceInput": True}),
+                "reference_audio_url": ("STRING", {"default": "", "multiline": False, "forceInput": True}),
+            }
+        }
+
+    RETURN_TYPES = ("VIDEO", "IMAGE", "STRING")
+    RETURN_NAMES = ("video", "last_frame_image", "response_str")
+    FUNCTION = "create_seedance_task"
+    CATEGORY = "BillBum/API Nodes"
+
+    @classmethod
+    def IS_CHANGED(cls, **kwargs):
+        return float("NaN")
+
+    def _poll_task_status(self, task_id, api_url, api_key, interval=1, max_attempts=600):
+        headers = {
+            "Authorization": f"Bearer {api_key}",
+            "Content-Type": "application/json"
+        }
+        url = f"{api_url}/{task_id}"
+
+        for attempt in range(max_attempts):
+            try:
+                response = requests.get(url, headers=headers)
+                if response.status_code == 200:
+                    task_data = response.json()
+                    status = task_data.get("status")
+                    response_text = json.dumps(task_data, indent=2, ensure_ascii=False)
+                    if status in ["succeeded", "failed", "cancelled"]:
+                        print(response_text)
+                        return response_text
+                    else:
+                        time.sleep(interval)
+                else:
+                    error_msg = f"Failed to fetch task status. HTTP Status Code: {response.status_code}\nResponse: {response.text}"
+                    print(error_msg)
+                    return error_msg
+            except Exception as e:
+                error_msg = f"An exception occurred: {str(e)}"
+                print(error_msg)
+                return error_msg
+        timeout_msg = "Polling timed out."
+        print(timeout_msg)
+        return timeout_msg
+
+    def _to_base64_url(self, image_tensor):
+        pil_image = tensor2pil(image_tensor)
+        buffered = io.BytesIO()
+        pil_image.save(buffered, format="PNG")
+        img_str = base64.b64encode(buffered.getvalue()).decode("utf-8")
+        return f"data:image/png;base64,{img_str}"
+
+    def _to_base64_url_from_input(self, img_input):
+        urls = []
+        if isinstance(img_input, torch.Tensor):
+            imgs = img_input
+            if imgs.dim() == 3:
+                imgs = imgs.unsqueeze(0)
+
+            # downscale large inputs to a reasonable size
+            samples = imgs.movedim(-1, 1)
+            total = int(1536 * 1024)
+            scale_by = math.sqrt(total / (samples.shape[3] * samples.shape[2]))
+            if scale_by < 1:
+                width = round(samples.shape[3] * scale_by)
+                height = round(samples.shape[2] * scale_by)
+                s = common_upscale(samples, width, height, "lanczos", "disabled")
+                imgs = s.movedim(1, -1)
+
+            for idx in range(imgs.shape[0]):
+                urls.append(self._to_base64_url(imgs[idx]))
+            return urls
+
+        if isinstance(img_input, Image.Image):
+            pil_image = img_input
+        elif isinstance(img_input, np.ndarray):
+            pil_image = Image.fromarray(img_input)
+        else:
+            raise TypeError("Unsupported IMAGE input type")
+
+        return [self._to_base64_url(pil2tensor(pil_image))]
+
+    def _extract_video_url(self, response_text):
+        try:
+            return json.loads(response_text).get("content", {}).get("video_url")
+        except Exception:
+            return None
+
+    def _extract_last_frame_url(self, response_text):
+        try:
+            return json.loads(response_text).get("content", {}).get("last_frame_url")
+        except Exception:
+            return None
+
+    def _download_to_temp(self, url):
+        temp_dir = os.path.join(folder_paths.get_input_directory(), "temp")
+        os.makedirs(temp_dir, exist_ok=True)
+        temp_path = os.path.join(temp_dir, f"seedance2_{uuid.uuid4().hex}.mp4")
+        with requests.get(url, stream=True, timeout=120) as r:
+            r.raise_for_status()
+            with open(temp_path, "wb") as f:
+                for chunk in r.iter_content(8192):
+                    if chunk:
+                        f.write(chunk)
+        return temp_path
+
+    def _download_image_to_tensor(self, url):
+        resp = requests.get(url, timeout=60)
+        resp.raise_for_status()
+        image = Image.open(io.BytesIO(resp.content)).convert("RGB")
+        return pil2tensor(image)
+
+    def create_seedance_task(self, model, prompt, seed, api_url, api_key,
+                             resolution, ratio, duration, generate_audio,
+                             watermark, web_search, return_last_frame,
+                             first_frame=None, last_frame=None,
+                             reference_images=None, reference_video_url=None,
+                             reference_audio_url=None):
+        headers = {
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {api_key}"
+        }
+
+        content = [{"type": "text", "text": prompt}]
+
+        # First frame / last frame
+        if first_frame is not None:
+            fsf_b64url = self._to_base64_url(first_frame)
+            content.append({
+                "type": "image_url",
+                "image_url": {"url": fsf_b64url},
+                "role": "first_frame"
+            })
+
+        if last_frame is not None:
+            lsf_b64url = self._to_base64_url(last_frame)
+            content.append({
+                "type": "image_url",
+                "image_url": {"url": lsf_b64url},
+                "role": "last_frame"
+            })
+
+        # Reference images (batch tensor, each image as reference_image, max 9)
+        if reference_images is not None:
+            ref_urls = self._to_base64_url_from_input(reference_images)
+            for b64url in ref_urls[:9]:
+                content.append({
+                    "type": "image_url",
+                    "image_url": {"url": b64url},
+                    "role": "reference_image"
+                })
+
+        # Reference video URLs (comma-separated, max 3)
+        if reference_video_url and reference_video_url.strip():
+            video_urls = [u.strip() for u in reference_video_url.split(",") if u.strip()]
+            for url in video_urls[:3]:
+                content.append({
+                    "type": "video_url",
+                    "video_url": {"url": url},
+                    "role": "reference_video"
+                })
+
+        # Reference audio URLs (comma-separated, max 3)
+        if reference_audio_url and reference_audio_url.strip():
+            audio_urls = [u.strip() for u in reference_audio_url.split(",") if u.strip()]
+            has_image_or_video = (first_frame is not None or last_frame is not None
+                                 or reference_images is not None
+                                 or (reference_video_url and reference_video_url.strip()))
+            if not has_image_or_video:
+                print("[seedance2] Warning: text+audio only input is not supported by Seedance 2.0, audio will be ignored.")
+            else:
+                for url in audio_urls[:3]:
+                    content.append({
+                        "type": "audio_url",
+                        "audio_url": {"url": url},
+                        "role": "reference_audio"
+                    })
+
+        data = {
+            "model": model,
+            "content": content,
+            "ratio": ratio,
+            "resolution": resolution,
+            "watermark": True if watermark == "true" else False,
+            "generate_audio": True if generate_audio == "true" else False,
+        }
+
+        # Duration: -1 means auto, 0 means skip (use default), otherwise set value
+        if duration == -1:
+            data["duration"] = -1
+        elif duration >= 4:
+            data["duration"] = duration
+        else:
+            data["duration"] = 4
+
+        if seed != -1:
+            data["seed"] = seed
+
+        if web_search == "true":
+            data["tools"] = [{"type": "web_search"}]
+
+        if return_last_frame == "true":
+            data["return_last_frame"] = True
+
+        try:
+            response = requests.post(api_url, headers=headers, json=data)
+            if response.status_code == 200:
+                response_json = response.json()
+                task_id = response_json.get("id", "")
+                if task_id:
+                    response_text = self._poll_task_status(task_id, api_url, api_key)
+
+                    # Early exit on failed/cancelled/timeout
+                    try:
+                        task_status = json.loads(response_text).get("status")
+                    except Exception:
+                        task_status = None
+                    if task_status != "succeeded":
+                        print(response_text)
+                        return (None, None, response_text)
+
+                    video_url = self._extract_video_url(response_text)
+                    video = VideoFromFile(self._download_to_temp(video_url)) if video_url else None
+
+                    last_frame_img = None
+                    last_frame_url = self._extract_last_frame_url(response_text)
+                    if last_frame_url:
+                        try:
+                            last_frame_img = self._download_image_to_tensor(last_frame_url)
+                        except Exception as e:
+                            print(f"Failed to download last frame image: {e}")
+
+                    print(response_text)
+                    return (video, last_frame_img, response_text)
+                else:
+                    error_msg = f"Task ID not found. Response: {response.text}"
+                    print(error_msg)
+                    return (None, None, error_msg)
+            else:
+                error_msg = f"Failed to create task. HTTP {response.status_code}\nResponse: {response.text}"
+                print(error_msg)
+                return (None, None, error_msg)
+        except Exception as e:
+            error_msg = f"An exception occurred: {str(e)}"
+            print(error_msg)
+            return (None, None, error_msg)
