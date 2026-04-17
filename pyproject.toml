@@ -1,7 +1,7 @@
 [project]
 name = "comfyui_billbum_api_nodes"
 description = "New Support Seedance2.0 api Now!!! API call node for Third-party platforms both official and local. Support VLMs LLMs Dalle3 Flux-Pro(Support kontext, banana etc... now!! and new Support gpt-image-1!!). And some little tools: img to b64 url, b64 url to img, b64 url to b64 data, reg text to word and ',' only, etc."
-version = "1.2.2"
+version = "1.2.3"
 license = {file = "LICENSE"}
 dependencies = ["tenacity", "openai", "pillow", "requests", "numpy", "tiktoken", "urlextract"]
 

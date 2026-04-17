@@ -83,7 +83,7 @@ class HyprLab_Image_API_Node:
             encoded_images.append(f"data:image/png;base64,{encoded}")
         return encoded_images
 
-    @tenacity.retry(wait=tenacity.wait_exponential(multiplier=1.25, min=5, max=30), stop=tenacity.stop_after_attempt(3))
+    @tenacity.retry(wait=tenacity.wait_exponential(multiplier=1.25, min=5, max=30), stop=tenacity.stop_after_attempt(3), retry=tenacity.retry_if_exception_type((requests.exceptions.ConnectionError, requests.exceptions.Timeout)), reraise=True)
     def generate_image(self, prompt, seed, model, api_url, api_key, resolution, aspect_ratio, image_input=None):
         
         headers = {

@@ -1,4 +1,5 @@
 import tenacity
+import openai
 from openai import OpenAI
 import random
 import base64
@@ -211,7 +212,7 @@ class BillBum_Modified_Dalle_API_Node:
     FUNCTION = "get_dalle_3_image"
     CATEGORY = "BillBum_API"
 
-    @tenacity.retry(wait=tenacity.wait_exponential(multiplier=1.25, min=5, max=30), stop=tenacity.stop_after_attempt(5))
+    @tenacity.retry(wait=tenacity.wait_exponential(multiplier=1.25, min=5, max=30), stop=tenacity.stop_after_attempt(5), retry=tenacity.retry_if_exception_type((openai.APIConnectionError, openai.RateLimitError, openai.APITimeoutError, openai.InternalServerError)), reraise=True)
     def get_dalle_3_image(self, prompt, model, size, quality, n, api_url, api_key,seed, style):
         random.seed(seed)
         client = OpenAI(
@@ -290,7 +291,7 @@ class BillBum_Modified_LLM_API_Node:
     FUNCTION = "get_llm_response"
     CATEGORY = "BillBum_API"
 
-    @tenacity.retry(wait=tenacity.wait_exponential(multiplier=1.25, min=5, max=30))
+    @tenacity.retry(wait=tenacity.wait_exponential(multiplier=1.25, min=5, max=30), stop=tenacity.stop_after_attempt(3), retry=tenacity.retry_if_exception_type((openai.APIConnectionError, openai.RateLimitError, openai.APITimeoutError, openai.InternalServerError)), reraise=True)
     def get_llm_response(self, prompt, model, api_url, api_key, system_prompt, temperature, use_meta_prompt, seed):
 
         random.seed(seed)
@@ -353,7 +354,7 @@ class BillBum_Modified_LLM_ForceStream_Mode:
     FUNCTION = "get_llm_stream_response"
     CATEGORY = "BillBum_API"
 
-    @tenacity.retry(wait=tenacity.wait_exponential(multiplier=1.25, min=5, max=30))
+    @tenacity.retry(wait=tenacity.wait_exponential(multiplier=1.25, min=5, max=30), stop=tenacity.stop_after_attempt(3), retry=tenacity.retry_if_exception_type((openai.APIConnectionError, openai.RateLimitError, openai.APITimeoutError, openai.InternalServerError)), reraise=True)
     def get_llm_stream_response(self, prompt, model, api_url, api_key, system_prompt, temperature, enable_thinking, seed):
 
         random.seed(seed)
@@ -433,7 +434,7 @@ class BillBum_Modified_VisionLM_API_Node:
     FUNCTION = "get_vlm_response"
     CATEGORY = "BillBum_API"
 
-    @tenacity.retry(wait=tenacity.wait_exponential(multiplier=1.25, min=5, max=30))
+    @tenacity.retry(wait=tenacity.wait_exponential(multiplier=1.25, min=5, max=30), stop=tenacity.stop_after_attempt(3), retry=tenacity.retry_if_exception_type((openai.APIConnectionError, openai.RateLimitError, openai.APITimeoutError, openai.InternalServerError)), reraise=True)
     def get_vlm_response(self, prompt, model, api_url, api_key, system_prompt, image, use_jailbreak, seed):
 
         if system_prompt == "" and use_jailbreak:
@@ -589,7 +590,7 @@ class BillBum_NonSysPrompt_VLM_API_Node:
     FUNCTION = "get_vlm_nsp_response"
     CATEGORY = "BillBum_API"
 
-    @tenacity.retry(wait=tenacity.wait_exponential(multiplier=1.25, min=5, max=30))
+    @tenacity.retry(wait=tenacity.wait_exponential(multiplier=1.25, min=5, max=30), stop=tenacity.stop_after_attempt(3), retry=tenacity.retry_if_exception_type((openai.APIConnectionError, openai.RateLimitError, openai.APITimeoutError, openai.InternalServerError)), reraise=True)
     def get_vlm_nsp_response(self, prompt, model, api_url, api_key, system_prompt, image, use_jailbreak, seed):
 
         if system_prompt == "" and use_jailbreak:
@@ -797,7 +798,7 @@ class BillBum_Modified_SD3_API_Node:
     FUNCTION = "get_sd3_image"
     CATEGORY = "BillBum_API"
 
-    @tenacity.retry(wait=tenacity.wait_exponential(multiplier=1.25, min=5, max=30))
+    @tenacity.retry(wait=tenacity.wait_exponential(multiplier=1.25, min=5, max=30), stop=tenacity.stop_after_attempt(3), retry=tenacity.retry_if_exception_type((requests.exceptions.ConnectionError, requests.exceptions.Timeout)), reraise=True)
     def get_sd3_image(self, prompt, negative_prompt, model, aspect_ratio, seed, api_url, api_key, style_preset):
 
         random.seed(seed)
@@ -869,7 +870,7 @@ class BillBum_Modified_Flux_API_Node_imgInput:
     FUNCTION = "get_fluxpro_image"
     CATEGORY = "BillBum_API"
 
-    @tenacity.retry(wait=tenacity.wait_exponential(multiplier=1.25, min=5, max=30), stop=tenacity.stop_after_attempt(3))
+    @tenacity.retry(wait=tenacity.wait_exponential(multiplier=1.25, min=5, max=30), stop=tenacity.stop_after_attempt(3), retry=tenacity.retry_if_exception_type((requests.exceptions.ConnectionError, requests.exceptions.Timeout)), reraise=True)
     def get_fluxpro_image(self, prompt, model, aspect_ratio, width, height, image_strength, seed, api_url, api_key, image_prompt = None):
         def get_b64_url(image_prompt):
             with torch.no_grad():
@@ -997,7 +998,7 @@ class BillBum_Modified_Recraft_API_Node:
     FUNCTION = "get_recraft_image"
     CATEGORY = "BillBum_API"
 
-    @tenacity.retry(wait=tenacity.wait_exponential(multiplier=1.25, min=4, max=30))
+    @tenacity.retry(wait=tenacity.wait_exponential(multiplier=1.25, min=4, max=30), stop=tenacity.stop_after_attempt(3), retry=tenacity.retry_if_exception_type((requests.exceptions.ConnectionError, requests.exceptions.Timeout)), reraise=True)
     def get_recraft_image(self, prompt, size, model, seed, api_url, api_key, style_type,):
 
         random.seed(seed)
@@ -1055,7 +1056,7 @@ class BillBum_Modified_Image_API_Call_Node:
     FUNCTION = "get_json_image"
     CATEGORY = "BillBum_API"
 
-    @tenacity.retry(wait=tenacity.wait_exponential(multiplier=1.25, min=5, max=30))
+    @tenacity.retry(wait=tenacity.wait_exponential(multiplier=1.25, min=5, max=30), stop=tenacity.stop_after_attempt(3), retry=tenacity.retry_if_exception_type((requests.exceptions.ConnectionError, requests.exceptions.Timeout)), reraise=True)
     def get_json_image(self, payload, api_url, api_key):
 
         url = api_url
@@ -1262,7 +1263,7 @@ class BillBum_Modified_Ideogram_API_Node:
     FUNCTION = "get_ideogram_image"
     CATEGORY = "BillBum_API"
 
-    @tenacity.retry(wait=tenacity.wait_exponential(multiplier=1.25, min=5, max=30))
+    @tenacity.retry(wait=tenacity.wait_exponential(multiplier=1.25, min=5, max=30), stop=tenacity.stop_after_attempt(3), retry=tenacity.retry_if_exception_type((requests.exceptions.ConnectionError, requests.exceptions.Timeout)), reraise=True)
     def get_ideogram_image(self, model, prompt, negative_prompt, aspect_ratio, seed, api_url, api_key, style_type, magic_prompt_option,):
         random.seed(seed)
 

@@ -1,4 +1,5 @@
 import tenacity
+import openai
 import random
 from openai import OpenAI
 import io
@@ -94,7 +95,7 @@ class BillBum_Modified_StreamResponse_LLM_API:
             encoded_images.append(encoded)
         return encoded_images
 
-    @tenacity.retry(wait=tenacity.wait_exponential(multiplier=1.25, min=5, max=30), stop=tenacity.stop_after_attempt(3), reraise=True)
+    @tenacity.retry(wait=tenacity.wait_exponential(multiplier=1.25, min=5, max=30), stop=tenacity.stop_after_attempt(3), retry=tenacity.retry_if_exception_type((openai.APIConnectionError, openai.RateLimitError, openai.APITimeoutError, openai.InternalServerError)), reraise=True)
     def get_llm_stream_response(
         self,
         prompt,
@@ -179,6 +180,7 @@ class Url2Image:
     FUNCTION = "get_url_image"
     CATEGORY = "BillBum_API/Utils"
 
+    @tenacity.retry(wait=tenacity.wait_exponential(multiplier=1.25, min=2, max=15), stop=tenacity.stop_after_attempt(3), retry=tenacity.retry_if_exception_type((requests.exceptions.ConnectionError, requests.exceptions.Timeout)), reraise=True)
     def _load_image_bytes(self, entry: str) -> bytes:
         if entry.startswith("data:"):
             _, base64_data = entry.split(",", 1)
@@ -268,6 +270,7 @@ class LoadVideoFromUrlComfyIO(comfyio.ComfyNode):
         return ".mp4"
 
     @staticmethod
+    @tenacity.retry(wait=tenacity.wait_exponential(multiplier=1.25, min=3, max=20), stop=tenacity.stop_after_attempt(3), retry=tenacity.retry_if_exception_type((requests.exceptions.ConnectionError, requests.exceptions.Timeout)), reraise=True)
     def _download_to_temp(url: str, suffix: str) -> str:
         with requests.get(url, stream=True, timeout=30) as resp:
             resp.raise_for_status()
@@ -328,6 +331,7 @@ class LoadVideoFromUrlVHS:
     FUNCTION = "load_video"
     CATEGORY = "BillBum_API/Utils"
 
+    @tenacity.retry(wait=tenacity.wait_exponential(multiplier=1.25, min=3, max=20), stop=tenacity.stop_after_attempt(3), retry=tenacity.retry_if_exception_type((requests.exceptions.ConnectionError, requests.exceptions.Timeout, ConnectionError)), reraise=True)
     def _download_video(self, url: str) -> str:
         if not url.startswith(("http://", "https://")):
             raise ValueError("仅支持 http/https URL。")

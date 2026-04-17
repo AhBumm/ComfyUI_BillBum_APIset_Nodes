@@ -236,7 +236,7 @@ class seedream_api_node:
         image = Image.open(io.BytesIO(image_data))
         return pil2tensor(image)
 
-    @tenacity.retry(wait=tenacity.wait_exponential(multiplier=1.25, min=2, max=20), stop=tenacity.stop_after_attempt(3), reraise=True)
+    @tenacity.retry(wait=tenacity.wait_exponential(multiplier=1.25, min=2, max=20), stop=tenacity.stop_after_attempt(3), retry=tenacity.retry_if_exception_type((requests.exceptions.ConnectionError, requests.exceptions.Timeout)), reraise=True)
     def generate_image(self, model, prompt, size, api_url, api_key, story_mode, image=None):
         headers = {
             "Content-Type": "application/json",
