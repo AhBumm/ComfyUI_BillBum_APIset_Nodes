@@ -525,13 +525,16 @@ class RegTuziChatResponse:
             )
             all_urls.extend(base64_urls)
 
-            # 3. Deduplicate URLs while preserving order
-            unique_urls = []
-            seen = set()
+            # 3. Deduplicate by filename, keeping the last occurrence
+            filename_to_url = {}
             for url in all_urls:
-                if url not in seen:
-                    unique_urls.append(url)
-                    seen.add(url)
+                if url.startswith('data:'):
+                    # base64 data URIs: use the full string as key
+                    filename_to_url[url] = url
+                else:
+                    fname = urlparse(url).path.rsplit('/', 1)[-1]
+                    filename_to_url[fname] = url
+            unique_urls = list(dict.fromkeys(filename_to_url.values()))
 
             out_str = ",".join(unique_urls)
 
@@ -557,15 +560,13 @@ class RegTuziChatResponse:
                 )
                 video_urls.extend(regex_video_urls)
             
-            # 2. Deduplicate and get the last URL
-            unique_urls = []
-            seen = set()
+            # 2. Deduplicate by filename, keeping the last occurrence
+            filename_to_url = {}
             for url in video_urls:
-                if url not in seen:
-                    unique_urls.append(url)
-                    seen.add(url)
+                fname = urlparse(url).path.rsplit('/', 1)[-1]
+                filename_to_url[fname] = url
+            unique_urls = list(dict.fromkeys(filename_to_url.values()))
             
             out_str = unique_urls[-1] if unique_urls else ""
             
         return (out_str,)
-    
