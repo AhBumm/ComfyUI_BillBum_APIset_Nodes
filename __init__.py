@@ -12,6 +12,7 @@ from .nodes4doubao import(
     seedream_api_node,
     seedance2_api_node
     )
+from .responses_api import BillBum_Modified_Responses_API_Node
 
 # Exporting the node classes for ComfyUI to discover
 NODE_CLASS_MAPPINGS = {
@@ -32,6 +33,7 @@ NODE_CLASS_MAPPINGS = {
     "BillBum_Modified_LLM_ForceStream_Mode": BillBum_Modified_LLM_ForceStream_Mode,
     "BillBum_Modified_GPTImage1_API_Node": BillBum_Modified_GPTImage1_API_Node,
     "BillBum_Modified_Flux_API_with_imgInput": BillBum_Modified_Flux_API_Node_imgInput,
+    "BillBum_Modified_Responses_API_Node": BillBum_Modified_Responses_API_Node,
     "billbum_modified_stream_response_llm_api": BillBum_Modified_StreamResponse_LLM_API,
     "url2image": Url2Image,
     "reg_tuzi_chat_response": RegTuziChatResponse,
@@ -66,6 +68,7 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "BillBum_Modified_LLM_ForceStream_Mode": "LLM StreamResponse Node (Old)",
     "BillBum_Modified_GPTImage1_API_Node": "Custom GPTImage1 API Node",
     "BillBum_Modified_Flux_API_with_imgInput": "Custom Flux API Node",
+    "BillBum_Modified_Responses_API_Node": "OpenAI Responses API Node",
     "hyprlab_image_api_node": "HyprLab ImageGen API Node",
     "doubao_seedance_api_node": "Doubao Seedance VideoGen API Node",
     "doubao_seedream_api_node": "Doubao Seedream ImageGen API Node",

@@ -15,6 +15,136 @@ import folder_paths
 from comfy_api.input_impl import VideoFromFile
 
 
+## ====== Network resilience helpers ======
+_TRANSIENT_EXC = (
+    requests.exceptions.ConnectionError,
+    requests.exceptions.Timeout,
+    requests.exceptions.ChunkedEncodingError,
+)
+
+
+def _request_with_retry(method, url, *, max_attempts=5, base_delay=1.5, **kwargs):
+    """HTTP request with exponential backoff on transient network errors and 5xx/429.
+
+    Returns the ``requests.Response`` on success (any 2xx/3xx/4xx). Raises the
+    last underlying exception after exhausting retries.
+    """
+    kwargs.setdefault("timeout", (10, 60))
+    last_exc = None
+    for attempt in range(max_attempts):
+        try:
+            resp = requests.request(method, url, **kwargs)
+        except _TRANSIENT_EXC as e:
+            last_exc = e
+        else:
+            if resp.status_code < 500 and resp.status_code != 429:
+                return resp
+            last_exc = RuntimeError(
+                f"HTTP {resp.status_code}: {resp.text[:200]}"
+            )
+        if attempt < max_attempts - 1:
+            time.sleep(base_delay * (2 ** attempt))
+    if isinstance(last_exc, BaseException):
+        raise last_exc
+    raise RuntimeError("request failed after retries")
+
+
+def _poll_ark_task_status(task_id, api_url, api_key, interval=1, max_attempts=1800):
+    """Poll an Ark async task until a terminal state.
+
+    Tolerant of transient network failures: a single ``ConnectTimeout`` /
+    ``ReadTimeout`` / 5xx no longer kills the whole task. Up to 15 *consecutive*
+    failures are allowed before giving up; any single successful response resets
+    the counter. 4xx errors (auth, bad request, not found) still abort
+    immediately because they will not get better with retrying.
+    """
+    headers = {
+        "Authorization": f"Bearer {api_key}",
+        "Content-Type": "application/json",
+    }
+    url = f"{api_url}/{task_id}"
+    consecutive_failures = 0
+    max_consecutive_failures = 15
+
+    for attempt in range(max_attempts):
+        try:
+            response = requests.get(url, headers=headers, timeout=(10, 30))
+        except _TRANSIENT_EXC as e:
+            consecutive_failures += 1
+            print(
+                f"[ark-poll] transient error #{consecutive_failures}/{max_consecutive_failures} "
+                f"on attempt {attempt + 1}: {type(e).__name__}: {e}"
+            )
+            if consecutive_failures >= max_consecutive_failures:
+                return (
+                    f"Polling aborted after {consecutive_failures} consecutive network failures. "
+                    f"Last error: {type(e).__name__}: {e}"
+                )
+            time.sleep(min(interval * (2 ** min(consecutive_failures, 5)), 30))
+            continue
+
+        if response.status_code == 200:
+            consecutive_failures = 0
+            task_data = response.json()
+            status = task_data.get("status")
+            response_text = json.dumps(task_data, indent=2, ensure_ascii=False)
+            if status in ["succeeded", "failed", "cancelled"]:
+                print(response_text)
+                return response_text
+            time.sleep(interval)
+            continue
+
+        if response.status_code == 429 or response.status_code >= 500:
+            consecutive_failures += 1
+            print(
+                f"[ark-poll] transient HTTP {response.status_code} "
+                f"#{consecutive_failures}/{max_consecutive_failures}"
+            )
+            if consecutive_failures >= max_consecutive_failures:
+                return (
+                    f"Polling aborted after {consecutive_failures} consecutive HTTP errors. "
+                    f"Last: HTTP {response.status_code}\nResponse: {response.text}"
+                )
+            time.sleep(min(interval * (2 ** min(consecutive_failures, 5)), 30))
+            continue
+
+        # 4xx (auth, bad request, not found) — won't get better, exit now
+        error_msg = (
+            f"Failed to fetch task status. HTTP Status Code: {response.status_code}\n"
+            f"Response: {response.text}"
+        )
+        print(error_msg)
+        return error_msg
+
+    return "Polling timed out."
+
+
+def _fetch_ark_task_once(task_id, api_url, api_key):
+    """Rescue path: one-shot strong-retry fetch of a task's final state.
+
+    Used after ``_poll_ark_task_status`` has given up, to give the workflow
+    one last chance to recover the (likely-completed) product before failing.
+    Returns the response JSON string or ``None``.
+    """
+    headers = {
+        "Authorization": f"Bearer {api_key}",
+        "Content-Type": "application/json",
+    }
+    url = f"{api_url}/{task_id}"
+    try:
+        resp = _request_with_retry(
+            "GET", url, headers=headers,
+            max_attempts=6, base_delay=2.0, timeout=(10, 30),
+        )
+    except Exception as e:
+        print(f"[ark-rescue] final fetch failed: {type(e).__name__}: {e}")
+        return None
+    if resp.status_code != 200:
+        print(f"[ark-rescue] final fetch returned HTTP {resp.status_code}")
+        return None
+    return json.dumps(resp.json(), indent=2, ensure_ascii=False)
+
+
 ## DataType Conversion Functions
 def tensor2pil(image):
     return Image.fromarray(np.clip(255. * image.cpu().numpy().squeeze(), 0, 255).astype(np.uint8))
@@ -61,29 +191,11 @@ class seedance_api_node:
     FUNCTION = "create_seedance_task"
     CATEGORY = "BillBum/API Nodes"
 
-    def _poll_task_status(self, task_id, api_url, api_key, interval=1, max_attempts=500):
-        headers = {
-            "Authorization": f"Bearer {api_key}",
-            "Content-Type": "application/json"
-        }
-        url = f"{api_url}/{task_id}"
-
-        for attempt in range(max_attempts):
-            try:
-                response = requests.get(url, headers=headers)
-                if response.status_code == 200:
-                    task_data = response.json()
-                    status = task_data.get("status")
-                    response_text = json.dumps(task_data, indent=2, ensure_ascii=False)
-                    if status in ["succeeded", "failed", "cancelled"]:
-                        return response_text
-                    else:
-                        time.sleep(interval)
-                else:
-                    return f"Failed to fetch task status. HTTP Status Code: {response.status_code}\nResponse: {response.text}"
-            except Exception as e:
-                return f"An exception occurred: {str(e)}"
-        return "Polling timed out."
+    def _poll_task_status(self, task_id, api_url, api_key, interval=1, max_attempts=1800):
+        return _poll_ark_task_status(
+            task_id, api_url, api_key,
+            interval=interval, max_attempts=max_attempts,
+        )
 
     def _to_base64_url(self, image_tensor):
         pil_image = tensor2pil(image_tensor)
@@ -140,7 +252,10 @@ class seedance_api_node:
             data["seed"] = seed
         
         try:
-            response = requests.post(api_url, headers=headers, json=data)
+            response = _request_with_retry(
+                "POST", api_url, headers=headers, json=data,
+                max_attempts=4, base_delay=2.0, timeout=(10, 120),
+            )
             if response.status_code == 200:
                 response_json = response.json()
                 task_id = response_json.get("id", "")
@@ -369,36 +484,11 @@ class seedance2_api_node:
     def IS_CHANGED(cls, **kwargs):
         return float("NaN")
 
-    def _poll_task_status(self, task_id, api_url, api_key, interval=1, max_attempts=600):
-        headers = {
-            "Authorization": f"Bearer {api_key}",
-            "Content-Type": "application/json"
-        }
-        url = f"{api_url}/{task_id}"
-
-        for attempt in range(max_attempts):
-            try:
-                response = requests.get(url, headers=headers)
-                if response.status_code == 200:
-                    task_data = response.json()
-                    status = task_data.get("status")
-                    response_text = json.dumps(task_data, indent=2, ensure_ascii=False)
-                    if status in ["succeeded", "failed", "cancelled"]:
-                        print(response_text)
-                        return response_text
-                    else:
-                        time.sleep(interval)
-                else:
-                    error_msg = f"Failed to fetch task status. HTTP Status Code: {response.status_code}\nResponse: {response.text}"
-                    print(error_msg)
-                    return error_msg
-            except Exception as e:
-                error_msg = f"An exception occurred: {str(e)}"
-                print(error_msg)
-                return error_msg
-        timeout_msg = "Polling timed out."
-        print(timeout_msg)
-        return timeout_msg
+    def _poll_task_status(self, task_id, api_url, api_key, interval=1, max_attempts=1800):
+        return _poll_ark_task_status(
+            task_id, api_url, api_key,
+            interval=interval, max_attempts=max_attempts,
+        )
 
     def _to_base64_url(self, image_tensor):
         pil_image = tensor2pil(image_tensor)
@@ -453,19 +543,47 @@ class seedance2_api_node:
         temp_dir = os.path.join(folder_paths.get_input_directory(), "temp")
         os.makedirs(temp_dir, exist_ok=True)
         temp_path = os.path.join(temp_dir, f"seedance2_{uuid.uuid4().hex}.mp4")
-        with requests.get(url, stream=True, timeout=120) as r:
-            r.raise_for_status()
-            with open(temp_path, "wb") as f:
-                for chunk in r.iter_content(8192):
-                    if chunk:
-                        f.write(chunk)
-        return temp_path
+        last_exc = None
+        for attempt in range(4):
+            try:
+                with requests.get(url, stream=True, timeout=(10, 120)) as r:
+                    r.raise_for_status()
+                    with open(temp_path, "wb") as f:
+                        for chunk in r.iter_content(8192):
+                            if chunk:
+                                f.write(chunk)
+                return temp_path
+            except _TRANSIENT_EXC as e:
+                last_exc = e
+                print(
+                    f"[seedance2] video download attempt {attempt + 1}/4 failed: "
+                    f"{type(e).__name__}: {e}"
+                )
+                if attempt < 3:
+                    time.sleep(2 * (2 ** attempt))
+        if last_exc is not None:
+            raise last_exc
+        raise RuntimeError("video download failed")
 
     def _download_image_to_tensor(self, url):
-        resp = requests.get(url, timeout=60)
-        resp.raise_for_status()
-        image = Image.open(io.BytesIO(resp.content)).convert("RGB")
-        return pil2tensor(image)
+        last_exc = None
+        for attempt in range(4):
+            try:
+                resp = requests.get(url, timeout=(10, 60))
+                resp.raise_for_status()
+                image = Image.open(io.BytesIO(resp.content)).convert("RGB")
+                return pil2tensor(image)
+            except _TRANSIENT_EXC as e:
+                last_exc = e
+                print(
+                    f"[seedance2] image download attempt {attempt + 1}/4 failed: "
+                    f"{type(e).__name__}: {e}"
+                )
+                if attempt < 3:
+                    time.sleep(2 * (2 ** attempt))
+        if last_exc is not None:
+            raise last_exc
+        raise RuntimeError("image download failed")
 
     def create_seedance_task(self, model, prompt, seed, api_url, api_key,
                              resolution, ratio, duration, generate_audio,
@@ -560,7 +678,10 @@ class seedance2_api_node:
             data["return_last_frame"] = True
 
         try:
-            response = requests.post(api_url, headers=headers, json=data)
+            response = _request_with_retry(
+                "POST", api_url, headers=headers, json=data,
+                max_attempts=4, base_delay=2.0, timeout=(10, 120),
+            )
             if response.status_code == 200:
                 response_json = response.json()
                 task_id = response_json.get("id", "")
@@ -572,6 +693,23 @@ class seedance2_api_node:
                         task_status = json.loads(response_text).get("status")
                     except Exception:
                         task_status = None
+
+                    # Rescue path: the poll loop may have given up due to a
+                    # network glitch while the task itself completed
+                    # server-side. Give it one last strong-retry GET before
+                    # discarding the (likely-existing) product.
+                    if task_status != "succeeded":
+                        rescued = _fetch_ark_task_once(task_id, api_url, api_key)
+                        if rescued:
+                            try:
+                                rescued_status = json.loads(rescued).get("status")
+                            except Exception:
+                                rescued_status = None
+                            if rescued_status == "succeeded":
+                                print(f"[seedance2] rescued task {task_id} after polling failure")
+                                response_text = rescued
+                                task_status = "succeeded"
+
                     if task_status != "succeeded":
                         print(response_text)
                         return (None, None, response_text)

@@ -92,6 +92,21 @@ def downscale_input(image):
     s = s.movedim(1,-1)
     return s
 
+
+@tenacity.retry(
+    wait=tenacity.wait_exponential(multiplier=1.25, min=2, max=20),
+    stop=tenacity.stop_after_attempt(5),
+    retry=tenacity.retry_if_exception_type(
+        (requests.exceptions.ConnectionError, requests.exceptions.Timeout)
+    ),
+    reraise=True,
+)
+def _download_image_with_retry(url):
+    resp = requests.get(url, timeout=(10, 60))
+    resp.raise_for_status()
+    return resp
+
+
 def validate_and_cast_response(response):
     # validate raw JSON response
     data = response.data
@@ -114,9 +129,7 @@ def validate_and_cast_response(response):
             img = Image.open(io.BytesIO(img_data))
 
         elif image_url:
-            img_response = requests.get(image_url)
-            if img_response.status_code != 200:
-                raise Exception("Failed to download the image")
+            img_response = _download_image_with_retry(image_url)
             img = Image.open(io.BytesIO(img_response.content))
 
         img = img.convert("RGBA")
@@ -1487,6 +1500,7 @@ class BillBum_Modified_GPTImage1_API_Node:
 
         img_tensor = validate_and_cast_response(result)
         return (img_tensor,seed)
+
 
 # Ensure these mappings are correctly integrated into your ComfyUI environment
 NODE_CLASS_MAPPINGS = {
